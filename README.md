@@ -2,12 +2,12 @@
 
 A simple templating systems, write once run everywhere with JavaScript (nodejs or in browser ), PHP ...
 
-[![NPM](https://nodei.co/npm/otpl.png?downloads=true)](https://www.npmjs.com/package/otpl)
+[![NPM](https://nodei.co/npm/otpl-js.png?downloads=true)](https://www.npmjs.com/package/otpl-js)
 
 ## Setup with npm
 
 ```sh
-$ npm install otpl
+$ npm install otpl-js
 ```
 
 ## Run Build
@@ -35,7 +35,7 @@ $ npm run-script test
 
 ```javascript
 
-var otpl = require('otpl');
+var otpl = require('otpl-js');
 var data = {
 		'label' : {
 			'text' : 'Your password please :',
