@@ -1,0 +1,12 @@
+.gitignore
+/.git
+/files/otpl_done
+/output
+/php/output
+/history
+/todo
+/node_modules
+
+# don't ignore .npmignore files
+!.npmignore
+npm-debug.log

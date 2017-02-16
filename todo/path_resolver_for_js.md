@@ -1,0 +1,1 @@
+- relative path resolver for [otpl-js](../) like [OPathResolver](../php/src/OPathResolver.php) class for [otpl-php](../php/)

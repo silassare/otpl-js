@@ -1,0 +1,2 @@
+<label for="<%$.input.id%>" ><%$.label%></label>
+<input <%@HtmlSetAttr($.input)%> />

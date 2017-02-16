@@ -1,0 +1,31 @@
+//=================================
+<% loop($.data : $key : $value){ %>
+    //...
+<%}%>
+
+//javascript
+for(var __otpl_looper_ = looper(data); __otpl_looper_.next();){
+    var key = __otpl_looper_.key, value = __otpl_looper_.value;
+    //...
+}
+
+//php
+foreach($data as $key=>$value){
+    //...
+}
+
+//=================================
+<% loop($.data : $value){ %>
+    //...
+<%}%>
+
+//javascript
+for(var __otpl_looper_ = looper(data); __otpl_looper_.next();){
+    var value = __otpl_looper_.value;
+    //...
+}
+
+//php
+foreach($data as $value){
+    //...
+}

@@ -1,0 +1,10 @@
+<select>
+	<%loop($ : $key : $val){%>
+	<option value="<%$key%>" ><%$val%></option>
+	<%}%>
+</select>
+<ul>
+	<%loop($ : $val){%>
+	<li><%$val%></li>
+	<%}%>
+</ul>
