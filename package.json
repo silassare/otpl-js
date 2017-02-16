@@ -1,5 +1,5 @@
 {
-  "name": "otemplate",
+  "name": "otpl-js",
   "version": "1.1.2",
   "description": "A simple templating system write once run everywhere!",
   "main": "index.js",
