@@ -1,32 +1,33 @@
 var utils = {};
 
-utils.has = function(data,key,type){
+utils.has = function ( data, key, type ) {
 
-	if( !data ) return false;
+	if ( !data ) return false;
 
-	if( !type && data[ key ] != undefined ) return true;
-	else if( data[ key ] != undefined && utils.type( data[ key ] , type ) ) return true;
-	else return false;
+	if ( !type && data[ key ] != undefined ) return true;
+	if ( data[ key ] != undefined && utils.type( data[ key ], type ) ) return true;
+
+	return false;
 };
 
-utils.type = function(value,type){
+utils.type = function ( value, type ) {
 	var ans = false;
 
-	switch( type ){
+	switch ( type ) {
 		case 'string':
-			ans = ( typeof value === 'string') ? true:false;
-		break;
+			ans = ( typeof value === 'string') ? true : false;
+			break;
 		case 'list':
-			var str = Object.prototype.toString.call(value);
-			ans = ( str === '[object Array]' || str === '[object Object]' )? true : false ;
-		break;
+			var str = Object.prototype.toString.call( value );
+			ans     = ( str === '[object Array]' || str === '[object Object]' ) ? true : false;
+			break;
 		case 'numeric':
 			ans = !isNaN( value );
-		break;
+			break;
 	}
 
 	return ans;
 };
 
-OTplUtils.addPlugin('has',utils.has);
-OTplUtils.addPlugin('type',utils.type);
+OTplUtils.addPlugin( 'has', utils.has );
+OTplUtils.addPlugin( 'type', utils.type );

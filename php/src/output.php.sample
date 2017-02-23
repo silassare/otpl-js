@@ -1,14 +1,14 @@
 <?php
 /*! OTpl {otpl_version}*/
 
-	OTpl::register(array(
+	OTpl::register( array(
 		'version'		=> "{otpl_version}",
 		'version_name'	=> "{otpl_version_name}",
 		'src_path'		=> "{otpl_src_path}",
 		'compile_time'	=> {otpl_compile_time},
 		'func_name'		=> "{otpl_func_name}",
 		'data_key'		=> "{otpl_data_key}"
-	));
+	) );
 
 	function {otpl_func_name}({otpl_root_ref})
 	{

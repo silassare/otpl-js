@@ -1,5 +1,6 @@
 .gitignore
 /.git
+/.idea
 /files/otpl_done
 /output
 /php/output

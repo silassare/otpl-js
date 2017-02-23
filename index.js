@@ -1,1 +1,1 @@
-module.exports = require('./build/otpl');
+module.exports = require( './build/otpl' );

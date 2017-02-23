@@ -1,25 +1,25 @@
 {
-  "name": "otpl-js",
-  "version": "1.1.2",
-  "description": "A simple templating system write once run everywhere!",
-  "main": "index.js",
-  "scripts": {
-    "build": "node build.js",
-    "test": "node test.js"
-  },
-  "keywords": [
-    "otpl",
-    "template",
-    "otemplate"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "git+ssh://git@github.com/Silo229/otpl.git"
-  },
-  "author": "Emile Silas Sare (emile.silas@gmail.com)",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/Silo229/otpl/issues"
-  },
-  "homepage": "https://github.com/Silo229/otpl#readme"
+	"name" : "otpl-js",
+	"version" : "1.1.2",
+	"description" : "A simple templating system write once run everywhere!",
+	"main" : "index.js",
+	"scripts" : {
+		"build" : "node build.js",
+		"test" : "node test.js"
+	},
+	"keywords" : [
+		"otpl",
+		"template",
+		"otemplate"
+	],
+	"repository" : {
+		"type" : "git",
+		"url" : "git+ssh://git@github.com/Silo229/otpl.git"
+	},
+	"author" : "Emile Silas Sare (emile.silas@gmail.com)",
+	"license" : "ISC",
+	"bugs" : {
+		"url" : "https://github.com/Silo229/otpl/issues"
+	},
+	"homepage" : "https://github.com/Silo229/otpl#readme"
 }

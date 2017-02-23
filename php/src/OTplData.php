@@ -1,21 +1,19 @@
 <?php
 
-	final class OTplData
-	{
+	final class OTplData {
 		private $data = null;
 		private $context = null;
 
-		public function __construct($data,$context)
-		{
+		public function __construct( $data, $context ) {
 			$this->data = $data;
 			$this->context = $context;
 		}
 
-		public function getContext(){
+		public function getContext() {
 			return $this->context;
 		}
 
-		public function getData(){
+		public function getData() {
 			return $this->data;
 		}
 
