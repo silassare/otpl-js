@@ -14,12 +14,12 @@
 	],
 	"repository" : {
 		"type" : "git",
-		"url" : "git+ssh://git@github.com/Silo229/otpl.git"
+		"url" : "git+ssh://git@github.com/silassare/otpl.git"
 	},
 	"author" : "Emile Silas Sare (emile.silas@gmail.com)",
 	"license" : "ISC",
 	"bugs" : {
-		"url" : "https://github.com/Silo229/otpl/issues"
+		"url" : "https://github.com/silassare/otpl/issues"
 	},
-	"homepage" : "https://github.com/Silo229/otpl#readme"
+	"homepage" : "https://github.com/silassare/otpl#readme"
 }
