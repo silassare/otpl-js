@@ -1,6 +1,6 @@
 OTplUtils.addPlugin( 'HtmlSetAttr', function ( key, val ) {
-	var _    = " ",
-		data = {};
+	var data = {},
+		arr  = [];
 
 	if ( typeof key === 'string' ) {
 		data[ key ] = val;
@@ -8,14 +8,40 @@ OTplUtils.addPlugin( 'HtmlSetAttr', function ( key, val ) {
 		data = arguments[ 0 ];
 	}
 
-	for ( var attr in data ) {
-		var value = OTplUtils.textToLineString( data[ attr ] );
-		_ += ' ' + attr;
+	Object.keys(data).forEach(function(attr){
+		var value = OTplUtils.runPlugin( 'HtmlEscape', data[ attr ] ),
+			_     = attr;
 
 		if ( value.length ) {
 			_ += '="' + value + '"';
 		}
-	}
 
-	return _ + ' ';
+		arr.push( _ );
+	});
+
+	return arr.join( ' ' );
+} );
+
+var escapeChars = {
+		'¢'  : 'cent',
+		'£'  : 'pound',
+		'¥'  : 'yen',
+		'€'  : 'euro',
+		'©'  : 'copy',
+		'®'  : 'reg',
+		'<'  : 'lt',
+		'>'  : 'gt',
+		'"'  : 'quot',
+		'&'  : 'amp',
+		'\'' : '#39'
+	},
+	escapeReg   = new RegExp( '[' + Object.keys( escapeChars ).join( '' ) + ']', 'g' ),
+	ampReg      = new RegExp( '&amp;', 'g' );
+
+OTplUtils.addPlugin( 'HtmlEscape', function ( str ) {
+	str = str.replace( escapeReg, function ( m ) {
+		return '&' + escapeChars[ m ] + ';';
+	} );
+
+	return str.replace( ampReg, '&' );
 } );

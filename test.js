@@ -2,6 +2,7 @@
 
 var otpl  = require( './index' ),
 	fs    = require( 'fs' ),
+	path  = require( 'path' ),
 	start = (new Date()).getTime();
 
 if ( !fs.existsSync( './output' ) ) {
@@ -12,22 +13,32 @@ var test_run = function ( opt ) {
 	var url   = './files/' + opt.file;
 	var start = (new Date()).getTime();
 	var o     = new otpl;
+
 	o.parse( url );
-	var end = (new Date()).getTime();
 
-	fs.writeFileSync( './output/' + opt.file + '.js', o.getFnString() );
-	fs.writeFileSync( './output/' + opt.file + '.html', o.runWith( opt.data ) );
+	var end      = (new Date()).getTime();
+	var duration = end - start;
+	var fname    = path.basename( opt.file );
 
-	console.log( opt.file );
-	console.log( "\tstart: %d", start );
-	console.log( "\tend: %d", end );
-	console.log( "\tduration: %d ms", end - start );
-	console.log( "_________________________" );
+	fs.writeFileSync( './output/' + fname + '.js', o.getFnString() );
+	fs.writeFileSync( './output/' + fname + '.html', o.runWith( opt.data ) );
+
+	console.log(
+		"---------------------------------"
+		+ "\nFILE             : %s"
+		+ "\nSTART            : %d"
+		+ "\nEND              : %d"
+		+ "\nDURATION (ms)    : %d"
+		, opt.file, start, end, duration
+	);
 };
 
-console.log( "\n*********************************************************" );
-console.log( "\tOTpl Test results are in %s directory.", "./output/" );
-console.log( "_________________________________________________________\n" );
+console.log(
+	"\n*********************************************************"
+	+ "\n\tOTpl Test results are in %s directory."
+	+ "\n_________________________________________________________\n"
+	, "./output/"
+);
 
 test_run( {
 	'file' : 'test-var-1.otpl',
@@ -76,5 +87,21 @@ test_run( {
 		1 : 'Apple',
 		2 : 'HTC',
 		3 : 'Samsung'
+	}
+} );
+
+test_run( {
+	'file' : 'sub/test-import.otpl',
+	'data' : {
+		'data_a' : [ 'Franck', 23 ],
+		'data_b' : {
+			'input' : {
+				'id'          : 'name-field',
+				'type'        : 'text',
+				'placeholder' : 'Name',
+				'value'       : 'toto'
+			},
+			'label' : 'Your name:'
+		}
 	}
 } );

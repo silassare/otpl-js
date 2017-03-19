@@ -1,0 +1,2 @@
+- try to have the same output for otpl-js and otpl-php (for sure? lol)
+	-- fixe: new line are added or removed when template are interpreted with php version of otpl 

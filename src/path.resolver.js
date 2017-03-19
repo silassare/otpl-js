@@ -1,27 +1,35 @@
 var OPathResolver = {
-	DS       : '/',
-	resolve  : function ( root, path ) {
-		var root = !root ? __DIR__ : this.nomalize( root );
-		path     = this.nomalize( path );
+	DS      : '/',
+	resolve : function ( _root, path ) {
+		_root     = this.normalize( _root );
+		path      = this.normalize( path );
 
 		if ( this.isRelative( path ) ) {
-			if ( (this.DS === '/' && path[ 0 ] === '/' ) || /^[\w]+:/.test( path ) ) {
-				/*$path already start form the root
+			var full_path;
+
+			if ( path[ 0 ] === '/' || /^[\w]+:/.test( path ) ) {
+				/*path start form the root
 					/ 	of linux - unix
 					D: 	of windows
 				*/
 				full_path = path;
 			} else {
-				full_path = root + this.DS + path;
+				full_path = _root + this.DS + path;
 			}
 
-			return this.job( full_path.split( this.DS ) );
-		} else {
-			return path;
+			path = this.job( full_path ).replace(/^(https?):[/]([^/])/,"$1://$2");
 		}
+
+		return path;
 	},
-	job      : function ( _in ) {
-		var out = array();
+	job     : function ( src ) {
+		var _in = src.split( this.DS );
+		var out = [];
+
+		//preserve linux root first char '/' like in: /root/path/to/
+		if ( src[ 0 ] === this.DS ) {
+			out.push( '' );
+		}
 
 		for ( var i = 0 ; i < _in.length ; i++ ) {
 			var part = _in[ i ];
@@ -37,20 +45,29 @@ var OPathResolver = {
 				out.pop();
 			} else {
 				//now here we don't like
-				throw new Error( "Climbing above root is dangerouse: " + _in.join( this.DS ) );
+				throw new Error( "Climbing above root is dangerouse: " + src );
 			}
+		}
+
+		if ( !out.length ) {
+			return this.DS;
+		}
+
+		if ( out.length === 1 ) {
+			out.push( null );
 		}
 
 		return out.join( this.DS );
 	},
-	nomalize : function ( path ) {
-		if ( this.DS == "\\" )  return path.replace( /\//, '\\' );
-		return path.replace( /\\\\/, '/' );
+
+	normalize : function ( path ) {
+		return path.replace( /\\/g, '/' );
 	},
 
 	isRelative : function ( path ) {
 		return /^\.{1,2}[/\\]?/.test( path )
 			|| /[/\\]\.{1,2}[/\\]/.test( path )
-			|| /[/\\]\.{1,2}$/.test( path );
+			|| /[/\\]\.{1,2}$/.test( path )
+			|| /^[a-zA-Z0-9_.][^:]*$/.test( path );
 	}
-}
+};

@@ -1,9 +1,9 @@
 .gitignore
 /.git
 /.idea
-/files/otpl_done
+otpl_done
 /output
-/php/output
+/php
 /history
 /todo
 /node_modules

@@ -4,28 +4,30 @@ var test_run = function ( opt ) {
 
 	var out = document.getElementById( "out" );
 
-	var start  = (new Date()).getTime();
-	var obj    = new OTpl();
-	var result = obj.parse( '../files/' + opt.file ).runWith( opt.data );
-	var end    = (new Date()).getTime();
+	var start    = (new Date()).getTime();
+	var obj      = new OTpl();
+	var result   = obj.parse( '/otpl/files/' + opt.file ).runWith( opt.data );
+	var end      = (new Date()).getTime();
+	var duration = end - start;
 
-	var res_link  = document.createElement( 'a' );
-	var js_link   = document.createElement( 'a' );
 	var fname     = opt[ 'file' ].replace( /[^\w]+/g, "_" );
 	var js_fname  = fname + ".js";
 	var res_fname = fname + ".html";
 
-	js_link.href        = obj.exports( js_fname );
-	js_link.textContent = js_link.download = js_fname;
+	var js_link  = obj.exports( js_fname );
+	var res_link = URL.createObjectURL( new File( [ new Blob( [ result ], { type : 'text/plain' } ) ], res_fname ) );
 
-	res_link.href        = URL.createObjectURL( new File( [ new Blob( [ result ], { type : 'text/plain' } ) ], res_fname ) );
-	res_link.textContent = res_link.download = res_fname;
-
-	document.body.innerHTML += "<br/>start: " + start + "<br/>end: " + end + "<br/>duration: " + (end - start) + " ms<br/>";
-	document.body.appendChild( js_link );
-	document.body.innerHTML += "<br/>";
-	document.body.appendChild( res_link );
-	document.body.innerHTML += "<br/>";
+	document.body.innerHTML +=
+		"<table>"
+		+ "<tbody>"
+		+ "<tr><td>SOURCE</td><td>" + opt.file + "</td></tr>"
+		+ "<tr><td>OUTPUT SOURCE</td><td><a href='" + js_link + "'>Open</a>&nbsp;<a href='" + js_link + "' download='" + js_fname + "'>Download</a></td></tr>"
+		+ "<tr><td>OUTPUT FILE</td><td><a href='" + res_link + "'>Open</a>&nbsp;<a href='" + res_link + "' download='" + res_fname + "'>Download</a></td></tr>"
+		+ "<tr><td>START</td><td>" + start + "</td></tr>"
+		+ "<tr><td>END</td><td>" + end + "</td></tr>"
+		+ "<tr><td>DURATION (ms) </td><td>" + duration + "</td></tr>"
+		+ "</tbody>"
+		+ "</table>";
 };
 
 test_run( {
@@ -75,5 +77,21 @@ test_run( {
 		1 : 'Apple',
 		2 : 'HTC',
 		3 : 'Samsung'
+	}
+} );
+
+test_run( {
+	'file' : 'sub/test-import.otpl',
+	'data' : {
+		'data_a' : [ 'Franck', 23 ],
+		'data_b' : {
+			'input' : {
+				'id'          : 'name-field',
+				'type'        : 'text',
+				'placeholder' : 'Name',
+				'value'       : 'toto'
+			},
+			'label' : 'Your name:'
+		}
 	}
 } );

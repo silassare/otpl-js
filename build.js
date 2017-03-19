@@ -36,18 +36,21 @@ var dirBundle = function ( dir, cb ) {
 
 var features           = dirBundle( './src/features/' );
 var plugins            = dirBundle( './src/plugins/' );
-var sample_output_file = '"' + fs.readFileSync( './src/output.sample.js' )
-								 .toString()
-								 .replace( /"/g, '\\"' )
-								 .replace( /\t/g, '\\t' )
-								 .replace( /\n/g, '\\n' )
-								 .replace( /\r/g, '\\r' )
+var path_resolver      = fs.readFileSync( './src/path.resolver.js' );
+var sample_output_file = '"'
+	+ fs.readFileSync( './src/output.js.sample' )
+		.toString()
+		.replace( /"/g, '\\"' )
+		.replace( /\t/g, '\\t' )
+		.replace( /\n/g, '\\n' )
+		.replace( /\r/g, '\\r' )
 	+ '"';
 
 var bundle = fs.readFileSync( './src/otpl.base.js', 'utf8' )
 			   .replace( "{OTPL::SAMPLE_OUTPUT_FILE}", sample_output_file )
-			   .replace( "{CORE::FEATURES}", indent( features ) )
-			   .replace( "{CORE::PLUGINS}", indent( plugins ) );
+			   .replace( "{OTPL::FEATURES}", indent( features ) )
+			   .replace( "{OTPL::PLUGINS}", indent( plugins ) )
+			   .replace( "{OTPL::PATH_RESOLVER}", indent( path_resolver ) );
 
 if ( !fs.existsSync( './build' ) ) {
 	fs.mkdirSync( './build' );

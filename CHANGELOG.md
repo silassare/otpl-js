@@ -1,3 +1,13 @@
+### v1.1.4 (2017-02-28)
+
+	- new test output (cool) 
+	- OTpl register method rewritted both for js and php
+	- some test template added
+
+### v1.1.3 (2017-02-25)
+
+	- relative path resolve support for otpl-js
+
 ### v1.1.2 (2016-10-06)
 
 	- OTemplate renamed to OTpl

@@ -1,4 +1,4 @@
-/*! OTpl js-1.1.2
+/*! OTpl js-1.1.4
 	by Silas E. Sare (silo)
 */
 
@@ -25,37 +25,43 @@
 	*/
 
 	var
-		isFunc           = function ( fn ) {
+		isFunc                = function ( fn ) {
 			return typeof fn === 'function';
 		},
-		isPlainObject    = function ( a ) {
+		isPlainObject         = function ( a ) {
 			return Object.prototype.toString.apply( a ) === "[object Object]";
 		},
-		indent           = function ( code, n ) {
-			var tabs = Array( n || 1 ).fill( '\t' ).join( '' );
+		indent                = function ( code, n ) {
+			var tabs = (new Array( n || 1 )).fill( '\t' ).join( '' );
 			return code.toString().replace( /(?:\n|\r\n)(.)/g, function ( t, c ) {
 				return '\n' + tabs + (c || '')
 			} );
 		},
+		isNode                = ( typeof module === 'object' && module.exports ),
 
-		TEMP_FILE_STORE  = {},
+		TEMP_FILE_STORE       = {},
+		OTPL_DEFAULT_SRC_PATH = 'inline.template.otpl',
 		//use only for debug
-		OTPL_SAMPLE_FILE = {OTPL::SAMPLE_OUTPUT_FILE},
+		OTPL_SAMPLE_FILE      = {OTPL::SAMPLE_OUTPUT_FILE},
 
-		OTpl_compiled    = {},
-		OTpl_plugins     = {},
-		OTpl_replacers   = [],
-		OTpl_cleaners    = [],
+		OTpl_compiled         = {},
+		OTpl_plugins          = {},
+		OTpl_replacers        = [],
+		OTpl_cleaners         = [],
 
-		OTplUtils        = {
+		OTplUtils             = {
 			expose           : {},
-			register         : function ( compile_desc, fn ) {
+			register         : function ( desc, fn ) {
 
-				if ( !isPlainObject( compile_desc ) || !isFunc( fn ) ) throw "OTpl > can't register, invalid otpl output.";
+				if ( !isPlainObject( desc ) || !isFunc( fn ) || !desc.version || !desc.func_name ) {
+					throw "OTpl > can't register, invalid output description.";
+				}
 
-				var func_name = compile_desc.func_name;
+				if ( desc.version != OTpl.OTPL_VERSION ) {
+					return console.warn( "OTpl > can't register %s (generated with %s), current version is %s", desc.func_name, desc.version, OTpl.OTPL_VERSION );
+				}
 
-				OTpl_compiled[ func_name ] = fn;
+				OTpl_compiled[ desc.func_name ] = fn;
 			},
 			addCleaner       : function ( cl ) {
 				OTpl_cleaners.push( cl );
@@ -126,22 +132,31 @@
 			}
 		};
 
-	/**START::FEATURES**/
-	{CORE::FEATURES}
-	/**END::FEATURES**/
+	/*START::PATH_RESOLVER*/
+	{OTPL::PATH_RESOLVER}
+	/*END::PATH_RESOLVER*/
 
-	/**START::PLUGINS**/
-	{CORE::PLUGINS}
-	/**END::PLUGINS**/
+	/*START::FEATURES*/
+	{OTPL::FEATURES}
+	/*END::FEATURES*/
+
+	/*START::PLUGINS*/
+	{OTPL::PLUGINS}
+	/*END::PLUGINS*/
 
 	var OTpl = function () {
 		var scope                = this,
 			OTPL_TAG_REG         = /<%(.+?)?%>/g,
 			OTPL_SCRIPT_REG      = /^(\s*)?(if|else|for|while|break|continue|switch|case|default|})/,
+			OTPL_CLEAN_REG       = /(\r\n?|\n)[\t ]*(<%.*?[}{]\s*%>)/g,//uneccessary new line space and tab,
 			OTPL_TYPE_EXPRESSION = 0,
 			OTPL_TYPE_SCRIPT     = 1;
 
 		this.dependancies = [];
+
+		var _clean = function ( tpl ) {
+			return tpl.replace( OTPL_CLEAN_REG, "$2" );
+		};
 
 		var runReplacement = function ( list, source ) {
 			for ( var i = 0 ; i < list.length ; i++ ) {
@@ -150,9 +165,7 @@
 					val  = rule[ 'val' ];
 
 				if ( isFunc( val ) ) {
-					source = source.replace( reg, function () {
-						return val.apply( scope, arguments );
-					} );
+					source = source.replace( reg, val.bind(scope) );
 				} else {
 					source = source.replace( reg, val );
 				}
@@ -161,8 +174,10 @@
 			return source;
 		};
 
-		var Engine = function ( tpl ) {
-			var code   = "\n",
+		var Engine = function ( in_tpl ) {
+
+			var tpl    = _clean( in_tpl ),
+				code   = "\n",
 				cursor = 0, found;
 
 			var Add = function ( line, type ) {
@@ -208,15 +223,18 @@
 			var isUrl = /\.otpl$/.test( tpl );//SILO::TODO not safe 
 
 			if ( isUrl ) {
-				var obj = OTpl_compiled[ tpl ];
+				var url = OPathResolver.resolve( scope.getRootDir(), tpl );
+				var obj = OTpl_compiled[ url ];
+
+				this.func_name = this.src_path = url;
+
 				if ( obj instanceof OTpl ) {
 					this.output = obj.getOutput();
 				} else {
-					this.output = Engine( OTplUtils.loadFile( tpl ) );
+					this.output = Engine( OTplUtils.loadFile( url ) );
 				}
 
-				this.func_name = this.url = tpl;
-				OTpl_compiled[ tpl ] = this;
+				OTpl_compiled[ url ] = this;
 			} else {
 				this.output    = Engine( tpl );
 				this.func_name = (new Date()).getTime() + '_' + Math.random();
@@ -227,8 +245,9 @@
 	};
 
 	OTpl.prototype = {
-		func_name       : '',
-		url             : 'inline.template.otpl',
+		src_path        : OTPL_DEFAULT_SRC_PATH,
+		func_name       : "",
+		output          : "",
 		addDependancies : function ( deps ) {
 			for ( var i = 0 ; i < deps.length ; i++ ) {
 				var dep = deps[ i ];
@@ -240,11 +259,25 @@
 		getDependancies : function () {
 			return this.dependancies;
 		},
-		output          : function () {
-			return "";
-		},
 		getOutput       : function () {
 			return this.output;
+		},
+		getSrcPath      : function () {
+			if ( this.src_path === OTPL_DEFAULT_SRC_PATH ) return "";
+			return this.src_path;
+		},
+		getSrcDir       : function () {
+			var src = this.getSrcPath();
+			return src.slice( 0, src.lastIndexOf( OPathResolver.DS ) + 1 );
+		},
+		getRootDir      : function () {
+
+			if ( isNode ) {
+				var p = require( 'path' );
+				return p.resolve( './' );
+			}
+
+			return ( typeof location === 'object' && location.origin ) || './';
 		},
 		runWith         : function ( data ) {
 			var r = { out : [], data : data };
@@ -254,14 +287,14 @@
 			var desc = {
 					'{otpl_version}'      : OTpl.OTPL_VERSION,
 					'{otpl_version_name}' : OTpl.OTPL_VERSION_NAME,
-					'{otpl_src_path}'     : this.url,
+					'{otpl_src_path}'     : this.src_path,
 					'{otpl_func_name}'    : this.func_name,
 					'{otpl_compile_time}' : parseInt( (new Date).getTime() / 1000 ),
 					'{otpl_file_content}' : indent( this.getOutput(), 2 )
 				},
 				out  = OTPL_SAMPLE_FILE;
 
-			Object.keys( desc ).forEach( function ( key, index ) {
+			Object.keys( desc ).forEach( function ( key ) {
 				out = out.replace( new RegExp( key, 'g' ), desc[ key ] );
 			} );
 
@@ -289,10 +322,11 @@
 		}
 	};
 
-	OTpl.OTPL_VERSION      = "js-1.1.2";
-	OTpl.OTPL_VERSION_NAME = "OTpl js-1.1.2";
+	OTpl.OTPL_VERSION      = "js-1.1.4";
+	OTpl.OTPL_VERSION_NAME = "OTpl js-1.1.4";
 
 	OTpl.register = OTplUtils.register;
+	OTpl.addPlugin = OTplUtils.addPlugin;
 
 	if ( typeof define === 'function' && define.amd ) {
 		define( function () {

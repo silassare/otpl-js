@@ -1,5 +1,5 @@
 node_modules
 /.idea
 /files/otpl_done
-/output
-/php/output
+output
+otpl_done

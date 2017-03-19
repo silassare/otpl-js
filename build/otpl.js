@@ -1,4 +1,4 @@
-/*! OTpl js-1.1.2
+/*! OTpl js-1.1.4
 	by Silas E. Sare (silo)
 */
 
@@ -25,37 +25,43 @@
 	*/
 
 	var
-		isFunc           = function ( fn ) {
+		isFunc                = function ( fn ) {
 			return typeof fn === 'function';
 		},
-		isPlainObject    = function ( a ) {
+		isPlainObject         = function ( a ) {
 			return Object.prototype.toString.apply( a ) === "[object Object]";
 		},
-		indent           = function ( code, n ) {
-			var tabs = Array( n || 1 ).fill( '\t' ).join( '' );
+		indent                = function ( code, n ) {
+			var tabs = (new Array( n || 1 )).fill( '\t' ).join( '' );
 			return code.toString().replace( /(?:\n|\r\n)(.)/g, function ( t, c ) {
 				return '\n' + tabs + (c || '')
 			} );
 		},
+		isNode                = ( typeof module === 'object' && module.exports ),
 
-		TEMP_FILE_STORE  = {},
+		TEMP_FILE_STORE       = {},
+		OTPL_DEFAULT_SRC_PATH = 'inline.template.otpl',
 		//use only for debug
-		OTPL_SAMPLE_FILE = "/*! OTpl {otpl_version} */\r\nOTpl.register( {\r\n\t'version'      : \"{otpl_version}\",\r\n\t'version_name' : \"{otpl_version_name}\",\r\n\t'src_path'     : \"{otpl_src_path}\",\r\n\t'compile_time' : {otpl_compile_time},\r\n\t'func_name'    : \"{otpl_func_name}\"\r\n}, function ( OTplUtils, data ) {\r\n\t'use strict';\r\n\treturn (function ( __otpl_root ) {\r\n\t\t{otpl_file_content}\r\n\t})( { 'out' : [], 'data' : data } );\r\n} );\r\n",
+		OTPL_SAMPLE_FILE      = "/*\r\n * OTpl {otpl_version}\r\n * Auto-generated file, please don't edit\r\n *\r\n */\r\n\r\nOTpl.register( {\r\n\t'version'      : \"{otpl_version}\",\r\n\t'version_name' : \"{otpl_version_name}\",\r\n\t'src_path'     : \"{otpl_src_path}\",\r\n\t'compile_time' : {otpl_compile_time},\r\n\t'func_name'    : \"{otpl_func_name}\"\r\n}, function ( OTplUtils, data ) {\r\n\t'use strict';\r\n\treturn (function ( __otpl_root ) {\r\n\t\t{otpl_file_content}\r\n\t})( { 'out' : [], 'data' : data } );\r\n} );\r\n",
 
-		OTpl_compiled    = {},
-		OTpl_plugins     = {},
-		OTpl_replacers   = [],
-		OTpl_cleaners    = [],
+		OTpl_compiled         = {},
+		OTpl_plugins          = {},
+		OTpl_replacers        = [],
+		OTpl_cleaners         = [],
 
-		OTplUtils        = {
+		OTplUtils             = {
 			expose           : {},
-			register         : function ( compile_desc, fn ) {
+			register         : function ( desc, fn ) {
 
-				if ( !isPlainObject( compile_desc ) || !isFunc( fn ) ) throw "OTpl > can't register, invalid otpl output.";
+				if ( !isPlainObject( desc ) || !isFunc( fn ) || !desc.version || !desc.func_name ) {
+					throw "OTpl > can't register, invalid output description.";
+				}
 
-				var func_name = compile_desc.func_name;
+				if ( desc.version != OTpl.OTPL_VERSION ) {
+					return console.warn( "OTpl > can't register %s (generated with %s), current version is %s", desc.func_name, desc.version, OTpl.OTPL_VERSION );
+				}
 
-				OTpl_compiled[ func_name ] = fn;
+				OTpl_compiled[ desc.func_name ] = fn;
 			},
 			addCleaner       : function ( cl ) {
 				OTpl_cleaners.push( cl );
@@ -126,16 +132,95 @@
 			}
 		};
 
-	/**START::FEATURES**/
+	/*START::PATH_RESOLVER*/
+	var OPathResolver = {
+		DS      : '/',
+		resolve : function ( _root, path ) {
+			_root     = this.normalize( _root );
+			path      = this.normalize( path );
+
+			if ( this.isRelative( path ) ) {
+				var full_path;
+
+				if ( path[ 0 ] === '/' || /^[\w]+:/.test( path ) ) {
+					/*path start form the root
+						/ 	of linux - unix
+						D: 	of windows
+					*/
+					full_path = path;
+				} else {
+					full_path = _root + this.DS + path;
+				}
+
+				path = this.job( full_path ).replace(/^(https?):[/]([^/])/,"$1://$2");
+			}
+
+			return path;
+		},
+		job     : function ( src ) {
+			var _in = src.split( this.DS );
+			var out = [];
+
+			//preserve linux root first char '/' like in: /root/path/to/
+			if ( src[ 0 ] === this.DS ) {
+				out.push( '' );
+			}
+
+			for ( var i = 0 ; i < _in.length ; i++ ) {
+				var part = _in[ i ];
+				//ignore part that have no value
+				if ( !part.length || part === '.' ) continue;
+
+				if ( part !== '..' ) {
+					//cool we found a new part
+					out.push( part );
+
+				} else if ( out.length > 0 ) {
+					//going back up? sure
+					out.pop();
+				} else {
+					//now here we don't like
+					throw new Error( "Climbing above root is dangerouse: " + src );
+				}
+			}
+
+			if ( !out.length ) {
+				return this.DS;
+			}
+
+			if ( out.length === 1 ) {
+				out.push( null );
+			}
+
+			return out.join( this.DS );
+		},
+
+		normalize : function ( path ) {
+			return path.replace( /\\/g, '/' );
+		},
+
+		isRelative : function ( path ) {
+			return /^\.{1,2}[/\\]?/.test( path )
+				|| /[/\\]\.{1,2}[/\\]/.test( path )
+				|| /[/\\]\.{1,2}$/.test( path )
+				|| /^[a-zA-Z0-9_.][^:]*$/.test( path );
+		}
+	};
+	/*END::PATH_RESOLVER*/
+
+	/*START::FEATURES*/
 	//./src/features/import
 	(function(){
 		//Ex: @import(url,data) --> OTplUtils.importExec(url,data)
 		OTplUtils.addReplacer( {
-			reg : /@import\([\s]*?(?:'|\")(.*?)(?:'|\")(?:[\s]*,[\s]*(.+?)[\s]*)?[\s]*\)/g,
+			reg : /@import\([\s]*?(?:'|")(.*?)(?:'|")(?:[\s]*,[\s]*(.+?)[\s]*)?[\s]*\)/g,
 			val : function () {
 				var scope = this,
+					_root = scope.getSrcDir() || scope.getRootDir(),
 					url   = arguments[ 1 ],
 					data  = arguments[ 2 ];
+
+				url = OPathResolver.resolve( _root, url );
 
 				if ( /\.otpl$/.test( url ) ) {
 					var child = (new OTpl()).parse( url );
@@ -192,7 +277,7 @@
 		var looper_id = 0;
 
 		OTplUtils.addReplacer( {
-			reg : /loop[\s]*\([\s]*(.+?)[\s]*:[\s]*([$][a-zA-Z0-9_]+)[\s]*(?::[\s]*([$][a-zA-Z0-9_]+)[\s]*)?\)[\s]*\{/g,
+			reg : /loop[\s]*\([\s]*(.+?)[\s]*\:[\s]*([$][a-zA-Z0-9_]+)[\s]*(?:\:[\s]*([$][a-zA-Z0-9_]+)[\s]*)?\)[\s]*\{/g,
 			val : function () {
 				var data             = arguments[ 1 ],
 					key_name         = arguments[ 2 ],
@@ -239,9 +324,9 @@
 	})();
 
 
-	/**END::FEATURES**/
+	/*END::FEATURES*/
 
-	/**START::PLUGINS**/
+	/*START::PLUGINS*/
 	//./src/plugins/assert
 	(function(){
 		var utils = {};
@@ -250,10 +335,8 @@
 
 			if ( !data ) return false;
 
-			if ( !type && data[ key ] != undefined ) return true;
-			if ( data[ key ] != undefined && utils.type( data[ key ], type ) ) return true;
-
-			return false;
+			return ( !type && data[ key ] != undefined )
+			|| ( data[ key ] != undefined && utils.type( data[ key ], type ) );
 		};
 
 		utils.type = function ( value, type ) {
@@ -261,11 +344,11 @@
 
 			switch ( type ) {
 				case 'string':
-					ans = ( typeof value === 'string') ? true : false;
+					ans = ( typeof value === 'string');
 					break;
 				case 'list':
 					var str = Object.prototype.toString.call( value );
-					ans     = ( str === '[object Array]' || str === '[object Object]' ) ? true : false;
+					ans     = ( str === '[object Array]' || str === '[object Object]' );
 					break;
 				case 'numeric':
 					ans = !isNaN( value );
@@ -282,8 +365,8 @@
 	//./src/plugins/html
 	(function(){
 		OTplUtils.addPlugin( 'HtmlSetAttr', function ( key, val ) {
-			var _    = " ",
-				data = {};
+			var data = {},
+				arr  = [];
 
 			if ( typeof key === 'string' ) {
 				data[ key ] = val;
@@ -291,16 +374,42 @@
 				data = arguments[ 0 ];
 			}
 
-			for ( var attr in data ) {
-				var value = OTplUtils.textToLineString( data[ attr ] );
-				_ += ' ' + attr;
+			Object.keys(data).forEach(function(attr){
+				var value = OTplUtils.runPlugin( 'HtmlEscape', data[ attr ] ),
+					_     = attr;
 
 				if ( value.length ) {
 					_ += '="' + value + '"';
 				}
-			}
 
-			return _ + ' ';
+				arr.push( _ );
+			});
+
+			return arr.join( ' ' );
+		} );
+
+		var escapeChars = {
+				'¢'  : 'cent',
+				'£'  : 'pound',
+				'¥'  : 'yen',
+				'€'  : 'euro',
+				'©'  : 'copy',
+				'®'  : 'reg',
+				'<'  : 'lt',
+				'>'  : 'gt',
+				'"'  : 'quot',
+				'&'  : 'amp',
+				'\'' : '#39'
+			},
+			escapeReg   = new RegExp( '[' + Object.keys( escapeChars ).join( '' ) + ']', 'g' ),
+			ampReg      = new RegExp( '&amp;', 'g' );
+
+		OTplUtils.addPlugin( 'HtmlEscape', function ( str ) {
+			str = str.replace( escapeReg, function ( m ) {
+				return '&' + escapeChars[ m ] + ';';
+			} );
+
+			return str.replace( ampReg, '&' );
 		} );
 	})();
 
@@ -358,16 +467,21 @@
 	})();
 
 
-	/**END::PLUGINS**/
+	/*END::PLUGINS*/
 
 	var OTpl = function () {
 		var scope                = this,
 			OTPL_TAG_REG         = /<%(.+?)?%>/g,
 			OTPL_SCRIPT_REG      = /^(\s*)?(if|else|for|while|break|continue|switch|case|default|})/,
+			OTPL_CLEAN_REG       = /(\r\n?|\n)[\t ]*(<%.*?[}{]\s*%>)/g,//uneccessary new line space and tab,
 			OTPL_TYPE_EXPRESSION = 0,
 			OTPL_TYPE_SCRIPT     = 1;
 
 		this.dependancies = [];
+
+		var _clean = function ( tpl ) {
+			return tpl.replace( OTPL_CLEAN_REG, "$2" );
+		};
 
 		var runReplacement = function ( list, source ) {
 			for ( var i = 0 ; i < list.length ; i++ ) {
@@ -376,9 +490,7 @@
 					val  = rule[ 'val' ];
 
 				if ( isFunc( val ) ) {
-					source = source.replace( reg, function () {
-						return val.apply( scope, arguments );
-					} );
+					source = source.replace( reg, val.bind(scope) );
 				} else {
 					source = source.replace( reg, val );
 				}
@@ -387,8 +499,10 @@
 			return source;
 		};
 
-		var Engine = function ( tpl ) {
-			var code   = "\n",
+		var Engine = function ( in_tpl ) {
+
+			var tpl    = _clean( in_tpl ),
+				code   = "\n",
 				cursor = 0, found;
 
 			var Add = function ( line, type ) {
@@ -434,15 +548,18 @@
 			var isUrl = /\.otpl$/.test( tpl );//SILO::TODO not safe 
 
 			if ( isUrl ) {
-				var obj = OTpl_compiled[ tpl ];
+				var url = OPathResolver.resolve( scope.getRootDir(), tpl );
+				var obj = OTpl_compiled[ url ];
+
+				this.func_name = this.src_path = url;
+
 				if ( obj instanceof OTpl ) {
 					this.output = obj.getOutput();
 				} else {
-					this.output = Engine( OTplUtils.loadFile( tpl ) );
+					this.output = Engine( OTplUtils.loadFile( url ) );
 				}
 
-				this.func_name = this.url = tpl;
-				OTpl_compiled[ tpl ] = this;
+				OTpl_compiled[ url ] = this;
 			} else {
 				this.output    = Engine( tpl );
 				this.func_name = (new Date()).getTime() + '_' + Math.random();
@@ -453,8 +570,9 @@
 	};
 
 	OTpl.prototype = {
-		func_name       : '',
-		url             : 'inline.template.otpl',
+		src_path        : OTPL_DEFAULT_SRC_PATH,
+		func_name       : "",
+		output          : "",
 		addDependancies : function ( deps ) {
 			for ( var i = 0 ; i < deps.length ; i++ ) {
 				var dep = deps[ i ];
@@ -466,11 +584,25 @@
 		getDependancies : function () {
 			return this.dependancies;
 		},
-		output          : function () {
-			return "";
-		},
 		getOutput       : function () {
 			return this.output;
+		},
+		getSrcPath      : function () {
+			if ( this.src_path === OTPL_DEFAULT_SRC_PATH ) return "";
+			return this.src_path;
+		},
+		getSrcDir       : function () {
+			var src = this.getSrcPath();
+			return src.slice( 0, src.lastIndexOf( OPathResolver.DS ) + 1 );
+		},
+		getRootDir      : function () {
+
+			if ( isNode ) {
+				var p = require( 'path' );
+				return p.resolve( './' );
+			}
+
+			return ( typeof location === 'object' && location.origin ) || './';
 		},
 		runWith         : function ( data ) {
 			var r = { out : [], data : data };
@@ -480,14 +612,14 @@
 			var desc = {
 					'{otpl_version}'      : OTpl.OTPL_VERSION,
 					'{otpl_version_name}' : OTpl.OTPL_VERSION_NAME,
-					'{otpl_src_path}'     : this.url,
+					'{otpl_src_path}'     : this.src_path,
 					'{otpl_func_name}'    : this.func_name,
 					'{otpl_compile_time}' : parseInt( (new Date).getTime() / 1000 ),
 					'{otpl_file_content}' : indent( this.getOutput(), 2 )
 				},
 				out  = OTPL_SAMPLE_FILE;
 
-			Object.keys( desc ).forEach( function ( key, index ) {
+			Object.keys( desc ).forEach( function ( key ) {
 				out = out.replace( new RegExp( key, 'g' ), desc[ key ] );
 			} );
 
@@ -515,10 +647,11 @@
 		}
 	};
 
-	OTpl.OTPL_VERSION      = "js-1.1.2";
-	OTpl.OTPL_VERSION_NAME = "OTpl js-1.1.2";
+	OTpl.OTPL_VERSION      = "js-1.1.4";
+	OTpl.OTPL_VERSION_NAME = "OTpl js-1.1.4";
 
 	OTpl.register = OTplUtils.register;
+	OTpl.addPlugin = OTplUtils.addPlugin;
 
 	if ( typeof define === 'function' && define.amd ) {
 		define( function () {
