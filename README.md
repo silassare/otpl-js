@@ -30,7 +30,7 @@ $ npm run-script test
 
 ```html
 	<label for="<% $.input.id %>"><% $.label.text %></label>
-	<input <% @HtmlSetAttrs($.input) %> />
+	<input <% @HtmlSetAttr($.input) %> />
 ```
 
 ### Usage: nodejs
