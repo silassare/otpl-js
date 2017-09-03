@@ -1,6 +1,11 @@
 <?php
+/**
+ * Copyright (c) Emile Silas Sare <emile.silas@gmail.com>
+ *
+ * This file is part of Otpl.
+ */
 
-	include OTPL_SRC_DIR . 'OPathResolver.php';
+	include OTPL_SRC_DIR . 'OTplResolver.php';
 	include OTPL_SRC_DIR . 'OTplData.php';
 	include OTPL_SRC_DIR . 'OTplUtils.php';
 

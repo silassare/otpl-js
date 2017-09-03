@@ -1,4 +1,9 @@
 <?php
+	/**
+	 * Copyright (c) Emile Silas Sare <emile.silas@gmail.com>
+	 *
+	 * This file is part of Otpl.
+	 */
 
 	define( 'OTPL_ROOT_DIR', __DIR__ . DIRECTORY_SEPARATOR );
 	define( 'OTPL_SRC_DIR', OTPL_ROOT_DIR . 'src' . DIRECTORY_SEPARATOR );
@@ -88,13 +93,15 @@
 
 			if ( $this->is_url ) {
 
-				$tpl = OPathResolver::resolve( OTPL_ROOT_DIR, $tpl );
+				$tpl = OTplResolver::resolve( OTPL_ROOT_DIR, $tpl );
 				$this->input = OTplUtils::loadFile( $tpl );
 				$this->src_path = $tpl;
 
 				$pinfos = pathinfo( $tpl );
 				$dest_dir = $pinfos[ 'dirname' ];
-				$out_fname = $pinfos[ 'filename' ] . '_' . md5_file( $tpl );
+
+				// change only if file content change or file path change
+				$out_fname = $pinfos[ 'filename' ] . '_' . md5( $tpl . md5_file( $tpl ) );
 
 			} else {
 
@@ -197,12 +204,19 @@
 		}
 
 		public function runSave( $data, $out_url ) {
-			$out_url = OPathResolver::resolve( __DIR__, $out_url );
+			$out_url = OTplResolver::resolve( __DIR__, $out_url );
 
 			ob_start();
 			$this->runWith( $data );
 
 			$this->_write_file( $out_url, ob_get_clean() );
+		}
+
+		public function runGet( $data ) {
+			ob_start();
+			$this->runWith( $data );
+
+			return ob_get_clean();
 		}
 
 		private function runner( $workers, $code ) {
@@ -231,6 +245,10 @@
 			$tpl = preg_replace( self::OTPL_PRESERVE_NEWLINE_REG, "$1<?php echo '$2';?>", $tpl );
 
 			return $tpl;
+		}
+
+		public static function addPluginAlias($name, $pl){
+			OTplUtils::addPlugin( $name, $pl );
 		}
 
 		private function Engine() {

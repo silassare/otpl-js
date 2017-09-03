@@ -1,20 +1,27 @@
-var OPathResolver = {
+/*
+ * Copyright (c) Emile Silas Sare <emile.silas@gmail.com>
+ *
+ * This file is part of Otpl.
+ */
+
+var OTplResolver = {
 	DS      : '/',
-	resolve : function ( _root, path ) {
-		_root     = this.normalize( _root );
-		path      = this.normalize( path );
+
+	resolve : function ( ro_ot, path ) {
+		ro_ot = this.normalize( ro_ot );
+		path = this.normalize( path );
 
 		if ( this.isRelative( path ) ) {
 			var full_path;
 
 			if ( path[ 0 ] === '/' || /^[\w]+:/.test( path ) ) {
-				/*path start form the root
-					/ 	of linux - unix
-					D: 	of windows
-				*/
+				// path start form the root
+				// linux - unix	-> /
+				// windows		-> D:
+
 				full_path = path;
 			} else {
-				full_path = _root + this.DS + path;
+				full_path = ro_ot + this.DS + path;
 			}
 
 			path = this.job( full_path ).replace(/^(https?):[/]([^/])/,"$1://$2");
@@ -22,30 +29,31 @@ var OPathResolver = {
 
 		return path;
 	},
-	job     : function ( src ) {
-		var _in = src.split( this.DS );
+
+	job     : function ( path ) {
+		var _in = path.split( this.DS );
 		var out = [];
 
-		//preserve linux root first char '/' like in: /root/path/to/
-		if ( src[ 0 ] === this.DS ) {
+		// preserve linux root first char '/' like in: /root/path/to/
+		if ( path[ 0 ] === this.DS ) {
 			out.push( '' );
 		}
 
 		for ( var i = 0 ; i < _in.length ; i++ ) {
 			var part = _in[ i ];
-			//ignore part that have no value
+			// ignore part that have no value
 			if ( !part.length || part === '.' ) continue;
 
 			if ( part !== '..' ) {
-				//cool we found a new part
+				// cool we found a new part
 				out.push( part );
 
 			} else if ( out.length > 0 ) {
-				//going back up? sure
+				// going back up? sure
 				out.pop();
 			} else {
-				//now here we don't like
-				throw new Error( "Climbing above root is dangerouse: " + src );
+				// now here we don't like
+				throw new Error( "climbing above root is dangerouse: " + path );
 			}
 		}
 

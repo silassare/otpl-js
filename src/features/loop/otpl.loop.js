@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) Emile Silas Sare <emile.silas@gmail.com>
+ *
+ * This file is part of Otpl.
+ */
+
 OTplUtils.expose.looper = function ( data ) {
 	var i             = 0,
 		len           = 0,
@@ -8,7 +14,7 @@ OTplUtils.expose.looper = function ( data ) {
 		};
 
 	if ( !arr && !isPlainObject( data ) ) {
-		throw "OTpl > looper can't loop on data";
+		throw "OTPL : looper can't loop on data";
 	}
 
 	if ( arr ) {

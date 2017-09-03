@@ -1,6 +1,13 @@
-/*! OTpl js-1.1.4
-	by Silas E. Sare (silo)
-*/
+/*
+ * Copyright (c) Emile Silas Sare <emile.silas@gmail.com>
+ *
+ * This file is part of Otpl.
+ */
+
+/**
+ *  OTpl js-1.1.4
+ *	Emile Silas Sare (emile.silas@gmail.com)
+ */
 
 (function ( gscope ) {
 	'use strict';
@@ -28,6 +35,12 @@
 		isFunc                = function ( fn ) {
 			return typeof fn === 'function';
 		},
+		_endsWith = function(a,b){
+			// String.prototype.endsWith is not supported by all browser (ex: android)
+			a = String(a);
+			b = String(b);
+			return a.slice(a.length-b.length) === b;
+		},
 		isPlainObject         = function ( a ) {
 			return Object.prototype.toString.apply( a ) === "[object Object]";
 		},
@@ -38,7 +51,18 @@
 			} );
 		},
 		isNode                = ( typeof module === 'object' && module.exports ),
+		_getRootDir           = function(){
 
+			if ( isNode ) {
+				return require( 'path' ).resolve( './' );
+			}
+
+			//if ( typeof location === 'object' && location.protocol != 'file:' ){
+			//	return location.origin;
+			//}
+
+			return './';
+		},
 		TEMP_FILE_STORE       = {},
 		OTPL_DEFAULT_SRC_PATH = 'inline.template.otpl',
 		//use only for debug
@@ -48,20 +72,56 @@
 		OTpl_plugins          = {},
 		OTpl_replacers        = [],
 		OTpl_cleaners         = [],
+		OTpl_local_bundle     = {},
+		OTpl_local_bundle_map = {},
 
 		OTplUtils             = {
 			expose           : {},
 			register         : function ( desc, fn ) {
 
 				if ( !isPlainObject( desc ) || !isFunc( fn ) || !desc.version || !desc.func_name ) {
-					throw "OTpl > can't register, invalid output description.";
+					throw "OTPL : can't register, invalid output description.";
 				}
 
 				if ( desc.version != OTpl.OTPL_VERSION ) {
-					return console.warn( "OTpl > can't register %s (generated with %s), current version is %s", desc.func_name, desc.version, OTpl.OTPL_VERSION );
+					return console.warn( "OTPL : can't register %s (generated with %s), current version is %s", desc.func_name, desc.version, OTpl.OTPL_VERSION );
 				}
 
 				OTpl_compiled[ desc.func_name ] = fn;
+			},
+			addLocalFile     : function ( path, content) {
+				OTpl_local_bundle[path] =  content;
+
+				return OTpl;
+			},
+			getPathFromLocalBundle : function ( url ) {
+
+				if ( OTpl_local_bundle_map[url] === undefined ){
+					var paths = Object.keys(OTpl_local_bundle);
+
+					for( var i = 0; i < paths.length ; i++ ){
+						var path = paths[i];
+
+						if( _endsWith( url, path ) ){
+							OTpl_local_bundle_map[url] = path;
+							break;
+						}
+					}
+				}
+
+				return OTpl_local_bundle_map[url];
+			},
+			loadFromLocalBundle     : function ( url ) {
+				var path = OTplUtils.getPathFromLocalBundle(url);
+				
+				if( path != undefined ){
+					console.log('OTPL : load from local bundle success %s => %s', url, path);
+					return OTpl_local_bundle[path];
+				}
+
+				console.log('OTPL : load from local bundle fails %s',url);
+
+				return undefined;
 			},
 			addCleaner       : function ( cl ) {
 				OTpl_cleaners.push( cl );
@@ -90,17 +150,30 @@
 					return pl.apply( null, args );
 				}
 
-				throw "OTpl > plugin '" + pl_name + "' not found.";
+				throw "OTPL : plugin '" + pl_name + "' not found.";
+			},
+			importCustom     : function ( _root, url, data ) {
+
+				url = OTplResolver.resolve( unescape(_root), url );
+
+				if( _endsWith( url , '.otpl' ) ){
+					return OTplUtils.importExec( url, data );
+				} else {
+					return OTplUtils.loadFile( url );
+				}
 			},
 			importExec       : function ( url, data ) {
 				var o = OTpl_compiled[ url ];
+
 				if ( o instanceof OTpl ) return o.runWith( data );
-				else if ( isFunc( o ) ) return o( OTplUtils, data );
-				else throw "OTpl > '" + url + "' is required as dependance.";
+				if ( isFunc( o ) ) return o( OTplUtils, data );
+
+				return (new OTpl()).parse( url ).runWith(data);
 			},
 			loadFile         : function ( url ) {
 				if ( !(url in TEMP_FILE_STORE) ) {
-					if ( typeof XMLHttpRequest === 'function' ) {
+					var can_use_xhr = !( typeof location === 'object' && location.protocol === 'file:' );
+					if ( can_use_xhr && typeof XMLHttpRequest === 'function' ) {
 						var xhr = new XMLHttpRequest();
 						xhr.open( "GET", url, false );//<-- synchrone
 						xhr.send( null );
@@ -108,17 +181,24 @@
 						if ( xhr.status === 0 || (xhr.status >= 200 && xhr.status < 300) ) {
 							TEMP_FILE_STORE[ url ] = xhr.responseText;
 						} else {
-							throw "OTpl > can't read file at url : " + url + " status : " + xhr.status;
+							throw "OTPL : can't read file at url : " + url + " status : " + xhr.status;
 						}
-					} else if ( isFunc( require ) ) {
+					} else if ( typeof require === 'function' ) {
 						var fs = require( 'fs' );
 						if ( fs.existsSync( url ) && fs.lstatSync( url ).isFile() ) {
 							TEMP_FILE_STORE[ url ] = fs.readFileSync( url, 'utf8' );
 						} else {
-							throw "OTpl > can't read file at url : " + url;
+							throw "OTPL : can't read file at url : " + url;
 						}
 					} else {
-						throw "OTpl > can't load file at url : " + url;
+
+						var from_bundle = OTplUtils.loadFromLocalBundle(url);
+						if( from_bundle != undefined ){
+							TEMP_FILE_STORE[ url ] = from_bundle;
+						} else {
+							console.warn( 'OTpl: you could bundle your template files.' );
+							throw "OTPL : can't load file at url : " + url;
+						}
 					}
 				}
 
@@ -132,9 +212,9 @@
 			}
 		};
 
-	/*START::PATH_RESOLVER*/
-	{OTPL::PATH_RESOLVER}
-	/*END::PATH_RESOLVER*/
+	/*START::RESOLVER*/
+	{OTPL::RESOLVER}
+	/*END::RESOLVER*/
 
 	/*START::FEATURES*/
 	{OTPL::FEATURES}
@@ -159,15 +239,18 @@
 		};
 
 		var runReplacement = function ( list, source ) {
-			for ( var i = 0 ; i < list.length ; i++ ) {
-				var rule = list[ i ],
-					reg  = rule[ 'reg' ],
-					val  = rule[ 'val' ];
 
-				if ( isFunc( val ) ) {
-					source = source.replace( reg, val.bind(scope) );
-				} else {
-					source = source.replace( reg, val );
+			if( source != undefined ){
+				for ( var i = 0 ; i < list.length ; i++ ) {
+					var rule = list[ i ],
+						reg  = rule[ 'reg' ],
+						val  = rule[ 'val' ];
+
+					if ( isFunc( val ) ) {
+						source = source.replace( reg, val.bind(scope) );
+					} else {
+						source = source.replace( reg, val );
+					}
 				}
 			}
 
@@ -199,7 +282,7 @@
 			while ( found = OTPL_TAG_REG.exec( tpl ) ) {
 
 				var source = runReplacement( OTplUtils.getCleaners(), found[ 1 ] );
-				source     = runReplacement( OTplUtils.getReplacers(), source );
+					source = runReplacement( OTplUtils.getReplacers(), source );
 
 				Add( tpl.slice( cursor, found.index ) );
 
@@ -220,10 +303,10 @@
 		};
 
 		this.parse = function ( tpl ) {
-			var isUrl = /\.otpl$/.test( tpl );//SILO::TODO not safe 
+			var isUrl = _endsWith( tpl , '.otpl' );//SILO::TODO are you sure?
 
 			if ( isUrl ) {
-				var url = OPathResolver.resolve( scope.getRootDir(), tpl );
+				var url = OTplResolver.resolve( scope.getRootDir(), tpl );
 				var obj = OTpl_compiled[ url ];
 
 				this.func_name = this.src_path = url;
@@ -268,16 +351,10 @@
 		},
 		getSrcDir       : function () {
 			var src = this.getSrcPath();
-			return src.slice( 0, src.lastIndexOf( OPathResolver.DS ) + 1 );
+			return src.slice( 0, src.lastIndexOf( OTplResolver.DS ) + 1 );
 		},
 		getRootDir      : function () {
-
-			if ( isNode ) {
-				var p = require( 'path' );
-				return p.resolve( './' );
-			}
-
-			return ( typeof location === 'object' && location.origin ) || './';
+			return _getRootDir();
 		},
 		runWith         : function ( data ) {
 			var r = { out : [], data : data };
@@ -303,7 +380,7 @@
 		exports         : function ( fname ) {
 
 			if ( typeof module === 'object' && module.exports ) {
-				throw 'OTpl > exports is for test in browser only!';
+				throw 'OTPL : exports is for test in browser only!';
 			}
 
 			var file_content = "";
@@ -327,6 +404,8 @@
 
 	OTpl.register = OTplUtils.register;
 	OTpl.addPlugin = OTplUtils.addPlugin;
+	OTpl.runPlugin = OTplUtils.runPlugin;//for use in external plugin
+	OTpl.addLocalFile = OTplUtils.addLocalFile;
 
 	if ( typeof define === 'function' && define.amd ) {
 		define( function () {

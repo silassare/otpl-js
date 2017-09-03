@@ -1,7 +1,12 @@
 <?php
+/**
+ * Copyright (c) Emile Silas Sare <emile.silas@gmail.com>
+ *
+ * This file is part of Otpl.
+ */
 
-	final class OTplUtils {
-		const OTPL_STR_KEY_NAME_REG = "#^[a-z_][a-z0-9_]+$#i";
+final class OTplUtils {
+		const OTPL_STR_KEY_NAME_REG = "#^[a-z_][a-z0-9_]*$#i";
 		const OTPL_ROOT_REF = "\$otpl_root";
 		const OTPL_DATA_REF = "\$otpl_data";
 		const OTPL_FILE_EXT = "#\.otpl$#";
@@ -47,15 +52,15 @@
 					return call_user_func_array( $fn, $args );
 				}
 
-				throw new Exception( "OTpl > plugin `$name` is not callable." );
+				throw new Exception( "OTPL : plugin `$name` is not callable." );
 			}
 
-			throw new Exception( "OTpl > plugin `$name` is not defined." );
+			throw new Exception( "OTPL : plugin `$name` is not defined." );
 		}
 
 		public static function loadFile( $src ) {
 			if ( empty( $src ) || !file_exists( $src ) || !is_file( $src ) || !is_readable( $src ) ) {
-				throw new Exception( "OTpl > Unable to access file at : $src" );
+				throw new Exception( "OTPL : Unable to access file at : $src" );
 			}
 
 			return file_get_contents( $src );
@@ -69,5 +74,15 @@
 			$o->runWith( $data );
 
 			return ob_get_clean();
+		}
+
+		public static function importCustom( $root, $url, $data ){
+			$url = OTplResolver::resolve( $root, $url );
+
+			if ( self::isTplFile( $url ) ) {
+				return self::importExec( $url, $data );
+			}
+
+			return self::loadFile( $url );
 		}
 	}

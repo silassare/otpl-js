@@ -1,9 +1,14 @@
 <?php
+/**
+ * Copyright (c) Emile Silas Sare <emile.silas@gmail.com>
+ *
+ * This file is part of Otpl.
+ */
 
-	final class OTplFeature_RootVar {
+final class OTplFeature_RootVar {
 		//SILO:: root data alias $ replacement
 		const REG_ROOT_KEY = "#[$]([^\w.])#";
-		const REG_JS_CHAIN_A = "#([$]|\])\.(\w+)#";
+		const REG_JS_CHAIN_A = "#([$][a-zA-Z0-9_]*|\])\.(\w+)#";
 		const REG_JS_CHAIN_B = "#([$])\[(.+?)\]#";
 		const REG_AT_VAR = "#(?!\w)@var(\s+[$][a-zA-Z_])#";
 		//shouldn't match @import(
@@ -22,8 +27,17 @@
 					$key_name = "'$key_name'";
 				}
 
-				$txt .= ( $start === ']' ) ? "]" : OTplUtils::OTPL_DATA_REF;
-				$txt .= "[$key_name]";
+				if( $start === '$' ){
+					// $.toto -> $otpl_data['toto']
+					$txt .= OTplUtils::OTPL_DATA_REF . "[$key_name]";
+				} else if( $start === ']' ){
+					// ].toto -> ]['totot']
+					$txt .=  "][$key_name]";
+				} else {
+					// $papa.toto -> $papa['toto']
+
+					$txt .= $start . "[$key_name]";
+				}
 			}
 
 			return $txt;

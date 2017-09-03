@@ -23,3 +23,8 @@
 		test: HtmlSetAttr
 ---------------------------------------------
 <%@import('../test-attr.otpl',$.data_b)%>
+
+---------------------------------------------
+		test: custom import
+---------------------------------------------
+<%@import($.custom_import[0],$.custom_import)%>

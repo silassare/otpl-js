@@ -1,8 +1,9 @@
 ### v1.1.4 (2017-02-28)
 
 	- new test output (cool) 
-	- OTpl register method rewritted both for js and php
+	- OTpl register method rewritten both for js and php
 	- some test template added
+	  -- OPathResolver renamed to OTplResolver
 
 ### v1.1.3 (2017-02-25)
 
@@ -11,7 +12,7 @@
 ### v1.1.2 (2016-10-06)
 
 	- OTemplate renamed to OTpl
-	- the template langage change
+	- the template language change
 	- features and plugins concept added
 	- foreach removed from otpl feature keywords
 	- loop both on array and object added

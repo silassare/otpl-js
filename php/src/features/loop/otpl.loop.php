@@ -1,6 +1,11 @@
 <?php
+/**
+ * Copyright (c) Emile Silas Sare <emile.silas@gmail.com>
+ *
+ * This file is part of Otpl.
+ */
 
-	final class OTplFeature_Loop {
+final class OTplFeature_Loop {
 		const REG = "#loop[\s]*\([\s]*(.+?)[\s]*\:[\s]*([$][a-zA-Z0-9_]+)[\s]*(?:\:[\s]*([$][a-zA-Z0-9_]+)[\s]*)?\)[\s]*\{#";
 
 		public static function exec( $in, OTpl $context ) {

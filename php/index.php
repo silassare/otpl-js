@@ -83,6 +83,7 @@
 	test_run( array(
 		'file' => 'sub/test-import.otpl',
 		'data' => array(
+			'custom_import' => array('./../custom-import.otpl',2017),
 			'data_a' => array( 'Franck', 23 ),
 			'data_b' => array(
 				'input' => array(

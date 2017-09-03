@@ -1,6 +1,11 @@
 <?php
+/**
+ * Copyright (c) Emile Silas Sare <emile.silas@gmail.com>
+ *
+ * This file is part of Otpl.
+ */
 
-	final class OTplPlugin_Assert {
+final class OTplPlugin_Assert {
 		public static function has( $data, $key, $type = null ) {
 			if ( !$data )
 				return false;
@@ -19,7 +24,7 @@
 				case 'string':
 					$ans = is_string( $value );
 					break;
-				case 'list':
+				case 'map':
 					$ans = is_array( $value );
 					break;
 				case 'numeric':

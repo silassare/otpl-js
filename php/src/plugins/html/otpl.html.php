@@ -1,6 +1,11 @@
 <?php
+/**
+ * Copyright (c) Emile Silas Sare <emile.silas@gmail.com>
+ *
+ * This file is part of Otpl.
+ */
 
-	final class OTplPlugin_Html {
+final class OTplPlugin_Html {
 		public static function SetAttr( $data ) {
 			$arr = array();
 

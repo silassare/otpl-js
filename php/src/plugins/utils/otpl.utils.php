@@ -1,6 +1,11 @@
 <?php
+/**
+ * Copyright (c) Emile Silas Sare <emile.silas@gmail.com>
+ *
+ * This file is part of Otpl.
+ */
 
-	final class OTplPlugin_Utils {
+final class OTplPlugin_Utils {
 		public static function join( $items, $sep = '' ) {
 			return implode( $sep, $items );
 		}
@@ -30,6 +35,10 @@
 
 			return count( $value );
 		}
+
+		public static function _if( $exp , $a = '' , $b = '' ) {
+			return ( $exp ) ? $a : $b;
+		}
 	}
 
 	OTplUtils::addPlugin( 'join', array( 'OTplPlugin_Utils', 'join' ) );
@@ -37,3 +46,4 @@
 	OTplUtils::addPlugin( 'keys', array( 'OTplPlugin_Utils', 'keys' ) );
 	OTplUtils::addPlugin( 'values', array( 'OTplPlugin_Utils', 'values' ) );
 	OTplUtils::addPlugin( 'length', array( 'OTplPlugin_Utils', 'length' ) );
+	OTplUtils::addPlugin( 'if', array( 'OTplPlugin_Utils', '_if' ) );

@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) Emile Silas Sare <emile.silas@gmail.com>
+ *
+ * This file is part of Otpl.
+ */
+
 var utils = {};
 
 utils.has = function ( data, key, type ) {
@@ -15,7 +21,7 @@ utils.type = function ( value, type ) {
 		case 'string':
 			ans = ( typeof value === 'string');
 			break;
-		case 'list':
+		case 'map':
 			var str = Object.prototype.toString.call( value );
 			ans     = ( str === '[object Array]' || str === '[object Object]' );
 			break;

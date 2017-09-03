@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) Emile Silas Sare <emile.silas@gmail.com>
+ *
+ * This file is part of Otpl.
+ */
+
 OTplUtils.addPlugin( 'HtmlSetAttr', function ( key, val ) {
 	var data = {},
 		arr  = [];
@@ -39,7 +45,7 @@ var escapeChars = {
 	ampReg      = new RegExp( '&amp;', 'g' );
 
 OTplUtils.addPlugin( 'HtmlEscape', function ( str ) {
-	str = str.replace( escapeReg, function ( m ) {
+	str = (''+str).replace( escapeReg, function ( m ) {
 		return '&' + escapeChars[ m ] + ';';
 	} );
 

@@ -1,6 +1,8 @@
 # OTPL
 
-A simple templating systems, write once run everywhere with JavaScript (nodejs or in browser ), PHP ...
+A simple template system, write once run everywhere with JavaScript (nodejs or in browser ), PHP ...
+
+## Your [contributions](https://github.com/silassare/otpl/) are welcomed
 
 [![NPM](https://nodei.co/npm/otpl-js.png?downloads=true)](https://www.npmjs.com/package/otpl-js)
 

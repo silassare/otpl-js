@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) Emile Silas Sare <emile.silas@gmail.com>
+ *
+ * This file is part of Otpl.
+ */
+
 var isArray       = function ( a ) {
 	return a && Object.prototype.toString.call( a ) === '[object Array]';
 };
@@ -25,6 +31,7 @@ OTplUtils.addPlugin( 'concat', function ( a, b ) {
 
 OTplUtils.addPlugin( 'length', function ( a ) {
 	if ( !a ) return 0;
+	if ( isPlainObject( a ) ) return Object.keys(a).length;
 	if ( Object.hasOwnProperty.call( a, 'length' ) ) return a.length;
 
 	return a;
@@ -46,4 +53,13 @@ OTplUtils.addPlugin( 'values', function ( a ) {
 	}
 
 	return [];
+} );
+
+// es6: fn = (exp, a = '', b = '') => ( exp? a : b );
+
+OTplUtils.addPlugin( 'if', function ( exp, a, b ) {
+	a = ( a === undefined )? '' : a;
+	b = ( b === undefined )? '' : b;
+
+	return ( exp )? a : b;
 } );

@@ -83,6 +83,7 @@ test_run( {
 test_run( {
 	'file' : 'sub/test-import.otpl',
 	'data' : {
+		'custom_import':['./../custom-import.otpl',2017],
 		'data_a' : [ 'Franck', 23 ],
 		'data_b' : {
 			'input' : {

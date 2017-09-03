@@ -1,6 +1,13 @@
-/*! OTpl js-1.1.4
-	by Silas E. Sare (silo)
-*/
+/*
+ * Copyright (c) Emile Silas Sare <emile.silas@gmail.com>
+ *
+ * This file is part of Otpl.
+ */
+
+/**
+ *  OTpl js-1.1.4
+ *	Emile Silas Sare (emile.silas@gmail.com)
+ */
 
 (function ( gscope ) {
 	'use strict';
@@ -28,6 +35,12 @@
 		isFunc                = function ( fn ) {
 			return typeof fn === 'function';
 		},
+		_endsWith = function(a,b){
+			// String.prototype.endsWith is not supported by all browser (ex: android)
+			a = String(a);
+			b = String(b);
+			return a.slice(a.length-b.length) === b;
+		},
 		isPlainObject         = function ( a ) {
 			return Object.prototype.toString.apply( a ) === "[object Object]";
 		},
@@ -38,7 +51,18 @@
 			} );
 		},
 		isNode                = ( typeof module === 'object' && module.exports ),
+		_getRootDir           = function(){
 
+			if ( isNode ) {
+				return require( 'path' ).resolve( './' );
+			}
+
+			//if ( typeof location === 'object' && location.protocol != 'file:' ){
+			//	return location.origin;
+			//}
+
+			return './';
+		},
 		TEMP_FILE_STORE       = {},
 		OTPL_DEFAULT_SRC_PATH = 'inline.template.otpl',
 		//use only for debug
@@ -48,20 +72,56 @@
 		OTpl_plugins          = {},
 		OTpl_replacers        = [],
 		OTpl_cleaners         = [],
+		OTpl_local_bundle     = {},
+		OTpl_local_bundle_map = {},
 
 		OTplUtils             = {
 			expose           : {},
 			register         : function ( desc, fn ) {
 
 				if ( !isPlainObject( desc ) || !isFunc( fn ) || !desc.version || !desc.func_name ) {
-					throw "OTpl > can't register, invalid output description.";
+					throw "OTPL : can't register, invalid output description.";
 				}
 
 				if ( desc.version != OTpl.OTPL_VERSION ) {
-					return console.warn( "OTpl > can't register %s (generated with %s), current version is %s", desc.func_name, desc.version, OTpl.OTPL_VERSION );
+					return console.warn( "OTPL : can't register %s (generated with %s), current version is %s", desc.func_name, desc.version, OTpl.OTPL_VERSION );
 				}
 
 				OTpl_compiled[ desc.func_name ] = fn;
+			},
+			addLocalFile     : function ( path, content) {
+				OTpl_local_bundle[path] =  content;
+
+				return OTpl;
+			},
+			getPathFromLocalBundle : function ( url ) {
+
+				if ( OTpl_local_bundle_map[url] === undefined ){
+					var paths = Object.keys(OTpl_local_bundle);
+
+					for( var i = 0; i < paths.length ; i++ ){
+						var path = paths[i];
+
+						if( _endsWith( url, path ) ){
+							OTpl_local_bundle_map[url] = path;
+							break;
+						}
+					}
+				}
+
+				return OTpl_local_bundle_map[url];
+			},
+			loadFromLocalBundle     : function ( url ) {
+				var path = OTplUtils.getPathFromLocalBundle(url);
+				
+				if( path != undefined ){
+					console.log('OTPL : load from local bundle success %s => %s', url, path);
+					return OTpl_local_bundle[path];
+				}
+
+				console.log('OTPL : load from local bundle fails %s',url);
+
+				return undefined;
 			},
 			addCleaner       : function ( cl ) {
 				OTpl_cleaners.push( cl );
@@ -90,17 +150,30 @@
 					return pl.apply( null, args );
 				}
 
-				throw "OTpl > plugin '" + pl_name + "' not found.";
+				throw "OTPL : plugin '" + pl_name + "' not found.";
+			},
+			importCustom     : function ( _root, url, data ) {
+
+				url = OTplResolver.resolve( unescape(_root), url );
+
+				if( _endsWith( url , '.otpl' ) ){
+					return OTplUtils.importExec( url, data );
+				} else {
+					return OTplUtils.loadFile( url );
+				}
 			},
 			importExec       : function ( url, data ) {
 				var o = OTpl_compiled[ url ];
+
 				if ( o instanceof OTpl ) return o.runWith( data );
-				else if ( isFunc( o ) ) return o( OTplUtils, data );
-				else throw "OTpl > '" + url + "' is required as dependance.";
+				if ( isFunc( o ) ) return o( OTplUtils, data );
+
+				return (new OTpl()).parse( url ).runWith(data);
 			},
 			loadFile         : function ( url ) {
 				if ( !(url in TEMP_FILE_STORE) ) {
-					if ( typeof XMLHttpRequest === 'function' ) {
+					var can_use_xhr = !( typeof location === 'object' && location.protocol === 'file:' );
+					if ( can_use_xhr && typeof XMLHttpRequest === 'function' ) {
 						var xhr = new XMLHttpRequest();
 						xhr.open( "GET", url, false );//<-- synchrone
 						xhr.send( null );
@@ -108,17 +181,24 @@
 						if ( xhr.status === 0 || (xhr.status >= 200 && xhr.status < 300) ) {
 							TEMP_FILE_STORE[ url ] = xhr.responseText;
 						} else {
-							throw "OTpl > can't read file at url : " + url + " status : " + xhr.status;
+							throw "OTPL : can't read file at url : " + url + " status : " + xhr.status;
 						}
-					} else if ( isFunc( require ) ) {
+					} else if ( typeof require === 'function' ) {
 						var fs = require( 'fs' );
 						if ( fs.existsSync( url ) && fs.lstatSync( url ).isFile() ) {
 							TEMP_FILE_STORE[ url ] = fs.readFileSync( url, 'utf8' );
 						} else {
-							throw "OTpl > can't read file at url : " + url;
+							throw "OTPL : can't read file at url : " + url;
 						}
 					} else {
-						throw "OTpl > can't load file at url : " + url;
+
+						var from_bundle = OTplUtils.loadFromLocalBundle(url);
+						if( from_bundle != undefined ){
+							TEMP_FILE_STORE[ url ] = from_bundle;
+						} else {
+							console.warn( 'OTpl: you could bundle your template files.' );
+							throw "OTPL : can't load file at url : " + url;
+						}
 					}
 				}
 
@@ -132,24 +212,31 @@
 			}
 		};
 
-	/*START::PATH_RESOLVER*/
-	var OPathResolver = {
+	/*START::RESOLVER*/
+	/*
+	 * Copyright (c) Emile Silas Sare <emile.silas@gmail.com>
+	 *
+	 * This file is part of Otpl.
+	 */
+
+	var OTplResolver = {
 		DS      : '/',
-		resolve : function ( _root, path ) {
-			_root     = this.normalize( _root );
-			path      = this.normalize( path );
+
+		resolve : function ( ro_ot, path ) {
+			ro_ot = this.normalize( ro_ot );
+			path = this.normalize( path );
 
 			if ( this.isRelative( path ) ) {
 				var full_path;
 
 				if ( path[ 0 ] === '/' || /^[\w]+:/.test( path ) ) {
-					/*path start form the root
-						/ 	of linux - unix
-						D: 	of windows
-					*/
+					// path start form the root
+					// linux - unix	-> /
+					// windows		-> D:
+
 					full_path = path;
 				} else {
-					full_path = _root + this.DS + path;
+					full_path = ro_ot + this.DS + path;
 				}
 
 				path = this.job( full_path ).replace(/^(https?):[/]([^/])/,"$1://$2");
@@ -157,30 +244,31 @@
 
 			return path;
 		},
-		job     : function ( src ) {
-			var _in = src.split( this.DS );
+
+		job     : function ( path ) {
+			var _in = path.split( this.DS );
 			var out = [];
 
-			//preserve linux root first char '/' like in: /root/path/to/
-			if ( src[ 0 ] === this.DS ) {
+			// preserve linux root first char '/' like in: /root/path/to/
+			if ( path[ 0 ] === this.DS ) {
 				out.push( '' );
 			}
 
 			for ( var i = 0 ; i < _in.length ; i++ ) {
 				var part = _in[ i ];
-				//ignore part that have no value
+				// ignore part that have no value
 				if ( !part.length || part === '.' ) continue;
 
 				if ( part !== '..' ) {
-					//cool we found a new part
+					// cool we found a new part
 					out.push( part );
 
 				} else if ( out.length > 0 ) {
-					//going back up? sure
+					// going back up? sure
 					out.pop();
 				} else {
-					//now here we don't like
-					throw new Error( "Climbing above root is dangerouse: " + src );
+					// now here we don't like
+					throw new Error( "climbing above root is dangerouse: " + path );
 				}
 			}
 
@@ -206,23 +294,37 @@
 				|| /^[a-zA-Z0-9_.][^:]*$/.test( path );
 		}
 	};
-	/*END::PATH_RESOLVER*/
+	/*END::RESOLVER*/
 
 	/*START::FEATURES*/
 	//./src/features/import
 	(function(){
+		/*
+		 * Copyright (c) Emile Silas Sare <emile.silas@gmail.com>
+		 *
+		 * This file is part of Otpl.
+		 */
+
 		//Ex: @import(url,data) --> OTplUtils.importExec(url,data)
 		OTplUtils.addReplacer( {
-			reg : /@import\([\s]*?(?:'|")(.*?)(?:'|")(?:[\s]*,[\s]*(.+?)[\s]*)?[\s]*\)/g,
+			reg : /@import\([\s]*?(['"]?(.*?)['"]?)(?:[\s]*,[\s]*(.+?)[\s]*)?[\s]*\)/g,
 			val : function () {
 				var scope = this,
 					_root = scope.getSrcDir() || scope.getRootDir(),
-					url   = arguments[ 1 ],
-					data  = arguments[ 2 ];
+					isExpression = (arguments[ 1 ] === arguments[ 2 ]),
+					url   = arguments[ 2 ],
+					data  = arguments[ 3 ];
 
-				url = OPathResolver.resolve( _root, url );
 
-				if ( /\.otpl$/.test( url ) ) {
+				if( isExpression ){
+					var expression = arguments[ 1 ];
+
+					return "OTplUtils.importCustom( '" + escape(_root) + "', " + expression + "," + data + ")";
+				}
+
+				url = OTplResolver.resolve( _root, url );
+
+				if ( _endsWith( url , '.otpl' ) ) {
 					var child = (new OTpl()).parse( url );
 
 					scope.addDependancies( child.getDependancies() );
@@ -238,6 +340,12 @@
 
 	//./src/features/loop
 	(function(){
+		/*
+		 * Copyright (c) Emile Silas Sare <emile.silas@gmail.com>
+		 *
+		 * This file is part of Otpl.
+		 */
+
 		OTplUtils.expose.looper = function ( data ) {
 			var i             = 0,
 				len           = 0,
@@ -248,7 +356,7 @@
 				};
 
 			if ( !arr && !isPlainObject( data ) ) {
-				throw "OTpl > looper can't loop on data";
+				throw "OTPL : looper can't loop on data";
 			}
 
 			if ( arr ) {
@@ -298,13 +406,19 @@
 
 	//./src/features/var
 	(function(){
-		//@var --> var
+		/*
+		 * Copyright (c) Emile Silas Sare <emile.silas@gmail.com>
+		 *
+		 * This file is part of Otpl.
+		 */
+
+		// @var --> var
 		OTplUtils.addCleaner( {
 			reg : /(?!\w)@var(\s+[$][a-zA-Z_])/g,
 			val : "var$1"
 		} );
 
-		//$ 	--> __otpl_root.data
+		// $ 	--> __otpl_root.data
 		OTplUtils.addCleaner( {
 			reg : /(\W)\$(\W)/g,
 			val : "$1__otpl_root.data$2"
@@ -315,7 +429,7 @@
 			val : "__otpl_root.data$1"
 		} );
 
-		//@fn(...) --> OTplUtils.runPlugin('fn',...)
+		// @fn(...) --> OTplUtils.runPlugin('fn',...)
 		//shouldn't match @import(
 		OTplUtils.addCleaner( {
 			reg : /(?!\w)@((?!import\()[a-zA-Z_][a-zA-Z0-9_]+)\(/g,
@@ -329,6 +443,12 @@
 	/*START::PLUGINS*/
 	//./src/plugins/assert
 	(function(){
+		/*
+		 * Copyright (c) Emile Silas Sare <emile.silas@gmail.com>
+		 *
+		 * This file is part of Otpl.
+		 */
+
 		var utils = {};
 
 		utils.has = function ( data, key, type ) {
@@ -346,7 +466,7 @@
 				case 'string':
 					ans = ( typeof value === 'string');
 					break;
-				case 'list':
+				case 'map':
 					var str = Object.prototype.toString.call( value );
 					ans     = ( str === '[object Array]' || str === '[object Object]' );
 					break;
@@ -364,6 +484,12 @@
 
 	//./src/plugins/html
 	(function(){
+		/*
+		 * Copyright (c) Emile Silas Sare <emile.silas@gmail.com>
+		 *
+		 * This file is part of Otpl.
+		 */
+
 		OTplUtils.addPlugin( 'HtmlSetAttr', function ( key, val ) {
 			var data = {},
 				arr  = [];
@@ -405,7 +531,7 @@
 			ampReg      = new RegExp( '&amp;', 'g' );
 
 		OTplUtils.addPlugin( 'HtmlEscape', function ( str ) {
-			str = str.replace( escapeReg, function ( m ) {
+			str = (''+str).replace( escapeReg, function ( m ) {
 				return '&' + escapeChars[ m ] + ';';
 			} );
 
@@ -415,6 +541,12 @@
 
 	//./src/plugins/utils
 	(function(){
+		/*
+		 * Copyright (c) Emile Silas Sare <emile.silas@gmail.com>
+		 *
+		 * This file is part of Otpl.
+		 */
+
 		var isArray       = function ( a ) {
 			return a && Object.prototype.toString.call( a ) === '[object Array]';
 		};
@@ -442,6 +574,7 @@
 
 		OTplUtils.addPlugin( 'length', function ( a ) {
 			if ( !a ) return 0;
+			if ( isPlainObject( a ) ) return Object.keys(a).length;
 			if ( Object.hasOwnProperty.call( a, 'length' ) ) return a.length;
 
 			return a;
@@ -464,6 +597,15 @@
 
 			return [];
 		} );
+
+		// es6: fn = (exp, a = '', b = '') => ( exp? a : b );
+
+		OTplUtils.addPlugin( 'if', function ( exp, a, b ) {
+			a = ( a === undefined )? '' : a;
+			b = ( b === undefined )? '' : b;
+
+			return ( exp )? a : b;
+		} );
 	})();
 
 
@@ -484,15 +626,18 @@
 		};
 
 		var runReplacement = function ( list, source ) {
-			for ( var i = 0 ; i < list.length ; i++ ) {
-				var rule = list[ i ],
-					reg  = rule[ 'reg' ],
-					val  = rule[ 'val' ];
 
-				if ( isFunc( val ) ) {
-					source = source.replace( reg, val.bind(scope) );
-				} else {
-					source = source.replace( reg, val );
+			if( source != undefined ){
+				for ( var i = 0 ; i < list.length ; i++ ) {
+					var rule = list[ i ],
+						reg  = rule[ 'reg' ],
+						val  = rule[ 'val' ];
+
+					if ( isFunc( val ) ) {
+						source = source.replace( reg, val.bind(scope) );
+					} else {
+						source = source.replace( reg, val );
+					}
 				}
 			}
 
@@ -524,7 +669,7 @@
 			while ( found = OTPL_TAG_REG.exec( tpl ) ) {
 
 				var source = runReplacement( OTplUtils.getCleaners(), found[ 1 ] );
-				source     = runReplacement( OTplUtils.getReplacers(), source );
+					source = runReplacement( OTplUtils.getReplacers(), source );
 
 				Add( tpl.slice( cursor, found.index ) );
 
@@ -545,10 +690,10 @@
 		};
 
 		this.parse = function ( tpl ) {
-			var isUrl = /\.otpl$/.test( tpl );//SILO::TODO not safe 
+			var isUrl = _endsWith( tpl , '.otpl' );//SILO::TODO are you sure?
 
 			if ( isUrl ) {
-				var url = OPathResolver.resolve( scope.getRootDir(), tpl );
+				var url = OTplResolver.resolve( scope.getRootDir(), tpl );
 				var obj = OTpl_compiled[ url ];
 
 				this.func_name = this.src_path = url;
@@ -593,16 +738,10 @@
 		},
 		getSrcDir       : function () {
 			var src = this.getSrcPath();
-			return src.slice( 0, src.lastIndexOf( OPathResolver.DS ) + 1 );
+			return src.slice( 0, src.lastIndexOf( OTplResolver.DS ) + 1 );
 		},
 		getRootDir      : function () {
-
-			if ( isNode ) {
-				var p = require( 'path' );
-				return p.resolve( './' );
-			}
-
-			return ( typeof location === 'object' && location.origin ) || './';
+			return _getRootDir();
 		},
 		runWith         : function ( data ) {
 			var r = { out : [], data : data };
@@ -628,7 +767,7 @@
 		exports         : function ( fname ) {
 
 			if ( typeof module === 'object' && module.exports ) {
-				throw 'OTpl > exports is for test in browser only!';
+				throw 'OTPL : exports is for test in browser only!';
 			}
 
 			var file_content = "";
@@ -652,6 +791,8 @@
 
 	OTpl.register = OTplUtils.register;
 	OTpl.addPlugin = OTplUtils.addPlugin;
+	OTpl.runPlugin = OTplUtils.runPlugin;//for use in external plugin
+	OTpl.addLocalFile = OTplUtils.addLocalFile;
 
 	if ( typeof define === 'function' && define.amd ) {
 		define( function () {

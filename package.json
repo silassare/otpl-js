@@ -1,11 +1,12 @@
 {
 	"name" : "otpl-js",
 	"version" : "1.1.4",
-	"description" : "A simple templating system write once run everywhere!",
+	"description" : "A simple template system write once run everywhere!",
 	"main" : "index.js",
 	"scripts" : {
 		"build" : "node build.js",
-		"test" : "node test.js"
+		"test" : "node test.js",
+		"templates-bundle" : "otpl-bundler --source \"./files\" --web-root \".\" --dest-dir \"./web\""
 	},
 	"keywords" : [
 		"otpl",
