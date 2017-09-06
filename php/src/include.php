@@ -34,8 +34,11 @@
 					}
 				}
 			}
+
+			closedir($res);
+
 		} else {
-			throw new Exception( "otpl_make_include > `$dir` not found or is not a valid directory." );
+			throw new Exception( sprintf( 'otpl_make_include > "%s" not found or is not a valid directory.', $dir) );
 		}
 	}
 
