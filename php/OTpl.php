@@ -10,7 +10,7 @@
 
 	include OTPL_SRC_DIR . 'include.php';
 
-	//CORE::INCLUDES
+	// CORE::INCLUDES
 
 	final class OTpl {
 		const OTPL_VERSION = "php-1.1.4";
@@ -77,7 +77,7 @@
 		}
 
 		private function _write_file( $path, $content ) {
-			//SILO:: make sure that file is writeable at this location,
+			// SILO:: make sure that file is writeable at this location,
 			if ( !file_exists( dirname( $path ) ) OR !is_writeable( dirname( $path ) ) ) {
 				throw new Exception( "OTpl: '$path' is not writeable." );
 			}
@@ -157,7 +157,7 @@
 				$func_name = $desc[ 'func_name' ];
 				self::$checked_func[ $func_name ] = true;
 
-				//make sure func_name is not already defined
+				// make sure func_name is not already defined
 				return !is_callable( $desc[ 'func_name' ] );
 			}
 
@@ -195,7 +195,7 @@
 				$tpl = $this->is_url ? $this->src_path : $this->input;
 				$o = new OTpl();
 
-				//let's parse again with a timed func_name: just for this use 
+				// let's parse again with a timed func_name: just for this use 
 				$o->parse( $tpl, true, true )
 					->runWith( $data );
 

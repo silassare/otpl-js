@@ -6,12 +6,12 @@
  */
 
 final class OTplFeature_RootVar {
-		//SILO:: root data alias $ replacement
+		// SILO:: root data alias $ replacement
 		const REG_ROOT_KEY = "#[$]([^\w.])#";
 		const REG_JS_CHAIN_A = "#([$][a-zA-Z0-9_]*|\])\.(\w+)#";
 		const REG_JS_CHAIN_B = "#([$])\[(.+?)\]#";
 		const REG_AT_VAR = "#(?!\w)@var(\s+[$][a-zA-Z_])#";
-		//shouldn't match @import(
+		// shouldn't match @import(
 		const REG_AT_PLUGIN = "#(?!\w)@((?!import\()[a-zA-Z_][a-zA-Z0-9_]+)\(#";
 
 		public static function root_key( $in, OTpl $context ) {

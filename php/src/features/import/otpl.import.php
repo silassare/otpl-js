@@ -6,8 +6,8 @@
  */
 
 final class OTplFeature_Import {
-		//SILO:: @import(url [,data]) replacement
-		//const REG = '#@import\([\s]*?[\'"]?(.*?)[\'"]?(?:[\s]*,[\s]*(.+?)[\s]*)?[\s]*\)#';
+		// SILO:: @import(url [,data]) replacement
+		// const REG = '#@import\([\s]*?[\'"]?(.*?)[\'"]?(?:[\s]*,[\s]*(.+?)[\s]*)?[\s]*\)#';
 		const REG = '#@import\([\s]*?([\'"]?(.*?)[\'"]?)(?:[\s]*,[\s]*(.+?)[\s]*)?[\s]*\)#';
 
 		public static function exec( $in, OTpl $context ) {
