@@ -20,6 +20,7 @@
 
 		const OTPL_TAG_REG = "#<%(.+?)?%>#";
 		const OTPL_SCRIPT_REG = "#^(\s*)?(if|else|for|foreach|while|break|continue|switch|case|default|})#";
+		const OTPL_CLEAN_PHP_TAG_REG = "#((?:(?:<\?(?:[pP][hH][pP]|=)?)|\?>)[\r\n]*)#";
 		const OTPL_CLEAN_LEFT_REG = "#([\r\n]+)[\t ]*(<%.*?[}{]\s*%>)#";
 		const OTPL_PRESERVE_NEWLINE_REG = "#(<%.*?%>)(\s+)(?!<%.*?[}{]\s*%>)#";
 
@@ -241,6 +242,7 @@
 		}
 
 		private static function _clean( $tpl ) {
+			$tpl = preg_replace( self::OTPL_CLEAN_PHP_TAG_REG, "<?php echo '$1';?>", $tpl);
 			$tpl = preg_replace( self::OTPL_CLEAN_LEFT_REG, "$1$2", $tpl );
 			$tpl = preg_replace( self::OTPL_PRESERVE_NEWLINE_REG, "$1<?php echo '$2';?>", $tpl );
 
