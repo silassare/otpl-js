@@ -34,13 +34,14 @@
 		public static function length($value)
 		{
 			if (is_string($value)) return strlen($value);
+			if (is_bool($value) OR is_numeric($value) OR is_null($value)) return intval($value);
 
 			return count($value);
 		}
 
 		public static function _if($exp, $a = '', $b = '')
 		{
-			return ($exp) ? $a : $b;
+			return ($exp ? $a : $b);
 		}
 	}
 

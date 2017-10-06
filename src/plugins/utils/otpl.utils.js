@@ -30,11 +30,11 @@ OTplUtils.addPlugin( 'concat', function ( a, b ) {
 } );
 
 OTplUtils.addPlugin( 'length', function ( a ) {
-	if ( !a ) return 0;
 	if ( isPlainObject( a ) ) return Object.keys(a).length;
-	if ( Object.hasOwnProperty.call( a, 'length' ) ) return a.length;
+	if ( a && Object.hasOwnProperty.call( a, 'length' ) ) return a.length;
+	if ( typeof a === 'number' ) return parseInt(a);
 
-	return a;
+	return a ? 1:0;
 } );
 
 OTplUtils.addPlugin( 'keys', function ( a ) {
