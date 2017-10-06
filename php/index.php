@@ -3,24 +3,25 @@
 
 	ob_start();
 
-	function test_run( $opt ) {
-		$DS = DIRECTORY_SEPARATOR;
-		$root = __DIR__ . $DS;
-		$out_dir = $root . 'output';
-		$url = $root . '..' . $DS . 'files' . $DS . $opt[ 'file' ];
-		$pinfos = pathinfo( $url );
-		$fname = $pinfos[ 'filename' ] . '.' . $pinfos[ 'extension' ] . '.html';
+	function test_run($opt)
+	{
+		$DS       = DIRECTORY_SEPARATOR;
+		$root     = __DIR__ . $DS;
+		$out_dir  = $root . 'output';
+		$url      = $root . '..' . $DS . 'files' . $DS . $opt['file'];
+		$pinfos   = pathinfo($url);
+		$fname    = $pinfos['filename'] . '.' . $pinfos['extension'] . '.html';
 		$out_file = $out_dir . $DS . $fname;
 
-		@mkdir( $out_dir, 0777 );
+		@mkdir($out_dir, 0777);
 
-		$start = microtime( true );
+		$start = microtime(true);
 
 		$o = new OTpl();
-		$o->parse( $url, true )
-			->runSave( $opt[ 'data' ], $out_file );
+		$o->parse($url, true)
+		  ->runSave($opt['data'], $out_file);
 
-		$end = microtime( true );
+		$end      = microtime(true);
 		$duration = $end - $start;
 
 		echo "<table>
@@ -34,68 +35,62 @@
 		</table>";
 	}
 
-	test_run( array(
+	test_run([
 		'file' => 'test-var-1.otpl',
-		'data' => array( 'Franck', 23 )
-	) );
+		'data' => ['Franck', 23]
+	]);
 
-	test_run( array(
+	test_run([
 		'file' => 'test-var-2.otpl',
-		'data' => array(
+		'data' => [
 			'name' => 'Franck',
 			'age'  => 23
-		)
-	) );
+		]
+	]);
 
-	test_run( array(
+	test_run([
 		'file' => 'test-var-3.otpl',
-		'data' => array(
-			array(
-				'name' => 'Stella',
-				'age'  => 41
-			), array(
-				'name' => 'Steve'
-			), array(
-				'name' => 'Franck',
-				'age'  => 23
-			)
-		)
-	) );
+		'data' => [
+			['name' => 'Stella', 'age' => 41],
+			['name' => 'Steve'],
+			['name' => 'Franck', 'age' => 23]
+		]
+	]);
 
-	test_run( array(
+	test_run([
 		'file' => 'test-attr.otpl',
-		'data' => array(
-			'input' => array(
+		'data' => [
+			'input' => [
 				'id'          => 'name-field',
 				'type'        => 'text',
 				'placeholder' => 'Name',
 				'value'       => 'toto'
-			),
+			],
 			'label' => 'Your name:'
-		)
-	) );
+		]
+	]);
 
-	test_run( array(
+	test_run([
 		'file' => 'test-loop.otpl',
-		'data' => array( 'Apple', 'HTC', 'Samsung' )
-	) );
+		'data' => ['Apple', 'HTC', 'Samsung']
+	]);
 
-	test_run( array(
+	test_run([
 		'file' => 'sub/test-import.otpl',
-		'data' => array(
-			'custom_import' => array('./../custom-import.otpl',2017),
-			'data_a' => array( 'Franck', 23 ),
-			'data_b' => array(
-				'input' => array(
+		'data' => [
+			'custom_import' => ['./../custom-import.otpl', 2017],
+			'data_a'        => ['Franck', 23],
+			'data_b'        => [
+				'input' => [
 					'id'          => 'name-field',
 					'type'        => 'text',
 					'placeholder' => 'Name',
 					'value'       => 'toto'
-				),
+				],
 				'label' => 'Your name:'
-			)
-		)
-	) );
+			]
+		]
+	]);
 
 	$content = ob_get_clean();
 

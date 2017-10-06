@@ -1,34 +1,30 @@
 <?php
-/**
- * Copyright (c) Emile Silas Sare <emile.silas@gmail.com>
- *
- * This file is part of Otpl.
- */
+	/**
+	 * Copyright (c) Emile Silas Sare <emile.silas@gmail.com>
+	 *
+	 * This file is part of Otpl.
+	 */
 
 	include OTPL_SRC_DIR . 'OTplResolver.php';
 	include OTPL_SRC_DIR . 'OTplData.php';
 	include OTPL_SRC_DIR . 'OTplUtils.php';
 
-	function otpl_make_include( $dir ) {
-
-		if ( DIRECTORY_SEPARATOR == "\\" ) {
-			$dir = strtr( $dir, '/', '\\' );
+	function otpl_make_include($dir)
+	{
+		if (DIRECTORY_SEPARATOR == "\\") {
+			$dir = strtr($dir, '/', '\\');
 		}
 
-		if ( file_exists( $dir ) AND is_dir( $dir ) AND $res = @opendir( $dir ) ) {
-
-			while ( false !== ( $filename = readdir( $res ) ) ) {
-
-				if ( $filename !== '.' AND $filename !== '..' ) {
-
+		if (file_exists($dir) AND is_dir($dir) AND $res = @opendir($dir)) {
+			while (false !== ($filename = readdir($res))) {
+				if ($filename !== '.' AND $filename !== '..') {
 					$c_path = $dir . DIRECTORY_SEPARATOR . $filename;
 
-					if ( is_dir( $c_path ) ) {
-
+					if (is_dir($c_path)) {
 						$dname = $filename;
 						$index = $c_path . DIRECTORY_SEPARATOR . 'otpl.' . $dname . '.php';
 
-						if ( file_exists( $index ) AND is_file( $index ) ) {
+						if (file_exists($index) AND is_file($index)) {
 							require_once $index;
 						}
 					}
@@ -36,11 +32,10 @@
 			}
 
 			closedir($res);
-
 		} else {
-			throw new Exception( sprintf( 'otpl_make_include > "%s" not found or is not a valid directory.', $dir) );
+			throw new Exception(sprintf('otpl_make_include > "%s" not found or is not a valid directory.', $dir));
 		}
 	}
 
-	otpl_make_include( OTPL_SRC_DIR . '/features' );
-	otpl_make_include( OTPL_SRC_DIR . '/plugins' );
+	otpl_make_include(OTPL_SRC_DIR . '/features');
+	otpl_make_include(OTPL_SRC_DIR . '/plugins');
