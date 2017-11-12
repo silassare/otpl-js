@@ -43,7 +43,7 @@ OTplUtils.expose.looper = function ( data ) {
 var looper_id = 0;
 
 OTplUtils.addReplacer( {
-	reg : /loop[\s]*\([\s]*(.+?)[\s]*\:[\s]*([$][a-zA-Z0-9_]+)[\s]*(?:\:[\s]*([$][a-zA-Z0-9_]+)[\s]*)?\)[\s]*\{/g,
+	reg : /loop[\s]*\([\s]*(.+?)[\s]*:[\s]*([$][a-zA-Z0-9_]+)[\s]*(?::[\s]*([$][a-zA-Z0-9_]+)[\s]*)?\)[\s]*{/g,
 	val : function () {
 		var data             = arguments[ 1 ],
 			key_name         = arguments[ 2 ],
