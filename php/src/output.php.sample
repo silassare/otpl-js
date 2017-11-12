@@ -14,7 +14,7 @@ if(
 		'func_name'		=> "{otpl_func_name}"
 	) )
 ){
-	function {otpl_func_name}({otpl_root_ref})
+	function {otpl_func_name}(OTplData {otpl_root_ref})
 	{
 		{otpl_data_ref} = {otpl_root_ref}->getData();
 		/*--------------OTPL source file Start----------------*/
