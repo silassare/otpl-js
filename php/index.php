@@ -5,13 +5,13 @@
 
 	function test_run($opt)
 	{
-		$DS       = DIRECTORY_SEPARATOR;
-		$root     = __DIR__ . $DS;
-		$out_dir  = $root . 'output';
-		$url      = $root . '..' . $DS . 'files' . $DS . $opt['file'];
-		$pinfos   = pathinfo($url);
-		$fname    = $pinfos['filename'] . '.' . $pinfos['extension'] . '.html';
-		$out_file = $out_dir . $DS . $fname;
+		$DS        = DIRECTORY_SEPARATOR;
+		$root      = __DIR__ . $DS;
+		$out_dir   = $root . 'output';
+		$url       = $root . '..' . $DS . 'files' . $DS . $opt['file'];
+		$pinfos    = pathinfo($url);
+		$file_name = $pinfos['filename'] . '.' . $pinfos['extension'] . '.html';
+		$out_file  = $out_dir . $DS . $file_name;
 
 		@mkdir($out_dir, 0777);
 
@@ -27,7 +27,7 @@
 		echo "<table>
 			<tbody>
 				<tr><td>SOURCE</td><td>{$o->getSrcPath()}</td></tr>
-				<tr><td>OUTPUT FILE</td><td><a href='./output/$fname' >Open</a></td></tr>
+				<tr><td>OUTPUT FILE</td><td><a href='./output/$file_name' >Open</a></td></tr>
 				<tr><td>START</td><td>$start</td></tr>
 				<tr><td>END</td><td>$end</td></tr>
 				<tr><td>DURATION (s) </td><td>$duration</td></tr>

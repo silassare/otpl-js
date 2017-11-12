@@ -70,7 +70,7 @@
 					array_pop($out);
 				} else {
 					// now here we don't like
-					throw new Exception(sprintf("climbing above root is dangerouse: %s", $path));
+					throw new Exception(sprintf("climbing above root is dangerous: %s", $path));
 				}
 			}
 
@@ -100,7 +100,7 @@
 		}
 
 		/**
-		 * check if a given path is relative or not
+		 * Checks if a given path is relative or not
 		 *
 		 * @param string $path the path
 		 *
