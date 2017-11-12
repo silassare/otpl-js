@@ -10,8 +10,8 @@ utils.has = function ( data, key, type ) {
 
 	if ( !data ) return false;
 
-	return ( !type && data[ key ] != undefined )
-	|| ( data[ key ] != undefined && utils.type( data[ key ], type ) );
+	return ( !type && data[ key ] !== undefined )
+	|| ( data[ key ] !== undefined && utils.type( data[ key ], type ) );
 };
 
 utils.type = function ( value, type ) {
