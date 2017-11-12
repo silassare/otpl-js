@@ -103,12 +103,12 @@
 				$dest_dir = $pinfos['dirname'];
 
 				// change only if file content change or file path change
-				$out_fname = $pinfos['filename'] . '_' . md5($tpl . md5_file($tpl));
+				$out_file_name = $pinfos['filename'] . '_' . md5($tpl . md5_file($tpl));
 			} else {
 				$this->input = $tpl;
 
 				$dest_dir  = OTPL_ROOT_DIR;
-				$out_fname = 'otpl_' . md5($tpl);
+				$out_file_name = 'otpl_' . md5($tpl);
 			}
 
 			$dest_dir .= DIRECTORY_SEPARATOR . self::OTPL_COMPILE_DIR_NAME;
@@ -117,12 +117,12 @@
 				mkdir($dest_dir, 0777);
 			}
 
-			$this->dest_path = $dest_dir . DIRECTORY_SEPARATOR . $out_fname . '.php';
+			$this->dest_path = $dest_dir . DIRECTORY_SEPARATOR . $out_file_name . '.php';
 
 			if (!$timed_func_name) {
-				$this->func_name = 'otpl_func_' . md5($out_fname);
+				$this->func_name = 'otpl_func_' . md5($out_file_name);
 			} else {
-				$this->func_name = 'otpl_func_' . md5($out_fname . microtime());
+				$this->func_name = 'otpl_func_' . md5($out_file_name . microtime());
 			}
 
 			if (!file_exists($this->dest_path) OR $force_new_compile) {
@@ -174,7 +174,7 @@
 				return false;
 			}
 
-			if (!isset($desc['version']) OR $desc['version'] != OTpl::OTPL_VERSION) {
+			if (!isset($desc['version']) OR $desc['version'] !== OTpl::OTPL_VERSION) {
 				return false;
 			}
 
