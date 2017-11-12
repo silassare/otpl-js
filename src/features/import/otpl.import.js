@@ -5,33 +5,31 @@
  */
 
 //Ex: @import(url,data) --> OTplUtils.importExec(url,data)
-OTplUtils.addReplacer( {
-	reg : /@import\([\s]*?(['"]?(.*?)['"]?)(?:[\s]*,[\s]*(.+?)[\s]*)?[\s]*\)/g,
-	val : function () {
-		var scope = this,
-			_root = scope.getSrcDir() || scope.getRootDir(),
-			isExpression = (arguments[ 1 ] === arguments[ 2 ]),
-			url   = arguments[ 2 ],
-			data  = arguments[ 3 ];
+OTplUtils.addReplacer({
+	reg: /@import\([\s]*?(['"]?(.*?)['"]?)(?:[\s]*,[\s]*(.+?)[\s]*)?[\s]*\)/g,
+	val: function () {
+		var scope        = this,
+			_root        = scope.getSrcDir() || scope.getRootDir(),
+			url          = arguments[2],
+			data         = arguments[3],
+			match        = arguments[0],
+			isExpression = !(/^@import\([\s]*?['"]/.test(match));
 
-
-		if( isExpression ){
-			var expression = arguments[ 1 ];
-
-			return "OTplUtils.importCustom( '" + escape(_root) + "', " + expression + "," + data + ")";
+		if (isExpression) {
+			return "OTplUtils.importCustom( '" + escape(_root) + "'," + match.replace(/^@import\([\s]*/, "");
 		}
 
-		url = OTplResolver.resolve( _root, url );
+		url = OTplResolver.resolve(_root, url);
 
-		if ( _endsWith( url , '.otpl' ) ) {
-			var child = (new OTpl()).parse( url );
+		if (_endsWith(url, ".otpl")) {
+			var child = (new OTpl()).parse(url);
 
-			scope.addDependancies( child.getDependancies() );
-			scope.addDependancies( [ url ] );
+			scope.addDependencies(child.getDependencies());
+			scope.addDependencies([url]);
 
 			return "OTplUtils.importExec('" + url + "'," + data + ")";
 		} else {
 			return "OTplUtils.loadFile('" + url + "')";
 		}
 	}
-} );
+});

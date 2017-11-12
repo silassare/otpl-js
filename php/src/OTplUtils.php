@@ -18,7 +18,7 @@
 
 		public static function isTplFile($url)
 		{
-			return preg_match(self::OTPL_FILE_EXT, $url);//SILO::TODO not safe
+			return preg_match(self::OTPL_FILE_EXT, $url);// SILO::TODO not safe
 		}
 
 		public static function addCleaner($reg, $cln_callable)
@@ -89,6 +89,10 @@
 
 		public static function importCustom($root, $url, $data)
 		{
+			if (!is_string($url) OR !strlen($url)) {
+				throw new Exception("OTPL : nothing to import, empty url (root: `$root`)");
+			}
+
 			$url = OTplResolver::resolve($root, $url);
 
 			if (self::isTplFile($url)) {

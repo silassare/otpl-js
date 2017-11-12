@@ -16,14 +16,15 @@
 			$src_dir = $context->getSrcDir();
 			$root    = ($src_dir) ? $src_dir : OTPL_ROOT_DIR;
 
-			$isExpression = ($in[1] === $in[2]) ? true : false;
+			$match         = $in[0];
+			$is_expression = !preg_match("#^@import\([\s]*?['\"]#", $match);
+
+			if ($is_expression) {
+				return " OTplUtils::importCustom( '$root'," . preg_replace("#^@import\([\s]*#", "", $match);
+			}
 
 			$url      = $in[2];
 			$data_str = isset($in[3]) ? $in[3] : null;
-
-			if ($isExpression) {
-				return " OTplUtils::importCustom( '$root', $url, $data_str ) ";
-			}
 
 			$url = OTplResolver::resolve($root, $url);
 
