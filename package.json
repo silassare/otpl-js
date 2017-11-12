@@ -1,26 +1,26 @@
 {
-	"name" : "otpl-js",
-	"version" : "1.1.4",
-	"description" : "A simple template system write once run everywhere!",
-	"main" : "index.js",
-	"scripts" : {
-		"build" : "node build.js",
-		"test" : "node test.js",
-		"templates-bundle" : "otpl-bundler --source \"./files\" --web-root \".\" --dest-dir \"./web\""
+	"name": "otpl-js",
+	"version": "1.1.4",
+	"description": "A simple template system write once run everywhere!",
+	"main": "index.js",
+	"scripts": {
+		"build": "node build.js",
+		"test": "node test.js",
+		"templates-bundle": "otpl-bundler --source \"./files\" --web-root \".\" --dest-dir \"./web\""
 	},
-	"keywords" : [
+	"keywords": [
 		"otpl",
 		"template",
 		"otemplate"
 	],
-	"repository" : {
-		"type" : "git",
-		"url" : "git+ssh://git@github.com/silassare/otpl.git"
+	"repository": {
+		"type": "git",
+		"url": "git+ssh://git@github.com/silassare/otpl.git"
 	},
-	"author" : "Emile Silas Sare (emile.silas@gmail.com)",
-	"license" : "ISC",
-	"bugs" : {
-		"url" : "https://github.com/silassare/otpl/issues"
+	"author": "Emile Silas Sare (emile.silas@gmail.com)",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/silassare/otpl/issues"
 	},
-	"homepage" : "https://github.com/silassare/otpl#readme"
+	"homepage": "https://github.com/silassare/otpl#readme"
 }
