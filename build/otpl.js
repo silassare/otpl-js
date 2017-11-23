@@ -309,34 +309,34 @@
 		 */
 
 		//Ex: @import(url,data) --> OTplUtils.importExec(url,data)
-		OTplUtils.addReplacer( {
-			reg : /@import\([\s]*?(['"]?(.*?)['"]?)(?:[\s]*,[\s]*(.+?)[\s]*)?[\s]*\)/g,
-			val : function () {
-				var scope = this,
-					_root = scope.getSrcDir() || scope.getRootDir(),
-					url   = arguments[ 2 ],
-					data  = arguments[ 3 ],
-					match = arguments[0],
+		OTplUtils.addReplacer({
+			reg: /@import\([\s]*?(['"]?(.*?)['"]?)(?:[\s]*,[\s]*(.+?)[\s]*)?[\s]*\)/g,
+			val: function () {
+				var scope        = this,
+					_root        = scope.getSrcDir() || scope.getRootDir(),
+					url          = arguments[2],
+					data         = arguments[3],
+					match        = arguments[0],
 					isExpression = !(/^@import\([\s]*?['"]/.test(match));
 
-				if( isExpression ){
-					return "OTplUtils.importCustom( '" + escape(_root) + "'," + match.replace(/^@import\([\s]*/,"");
+				if (isExpression) {
+					return "OTplUtils.importCustom( '" + escape(_root) + "'," + match.replace(/^@import\([\s]*/, "");
 				}
 
-				url = OTplResolver.resolve( _root, url );
+				url = OTplResolver.resolve(_root, url);
 
-				if ( _endsWith( url , '.otpl' ) ) {
-					var child = (new OTpl()).parse( url );
+				if (_endsWith(url, ".otpl")) {
+					var child = (new OTpl()).parse(url);
 
-					scope.addDependencies( child.getDependencies() );
-					scope.addDependencies( [ url ] );
+					scope.addDependencies(child.getDependencies());
+					scope.addDependencies([url]);
 
 					return "OTplUtils.importExec('" + url + "'," + data + ")";
 				} else {
 					return "OTplUtils.loadFile('" + url + "')";
 				}
 			}
-		} );
+		});
 	})();
 
 	//./src/features/loop
@@ -357,7 +357,7 @@
 				};
 
 			if ( !arr && !isPlainObject( data ) ) {
-				throw "OTPL : looper can't loop on data";
+				throw new TypeError("OTPL : looper can't loop on data");
 			}
 
 			if ( arr ) {
@@ -615,7 +615,7 @@
 	var OTpl = function () {
 		var scope                = this,
 			OTPL_TAG_REG         = /<%(.+?)?%>/g,
-			OTPL_SCRIPT_REG      = /^(\s*)?(if|else|for|while|break|continue|switch|case|default|})/,
+			OTPL_SCRIPT_REG      = /^(\s*)?(if|else|for|while|break|continue|switch|case|default|var\s+\$|})/,
 			OTPL_CLEAN_REG       = /(\r\n?|\n)[\t ]*(<%.*?[}{]\s*%>)/g,//uneccessary new line space and tab,
 			OTPL_TYPE_EXPRESSION = 0,
 			OTPL_TYPE_SCRIPT     = 1;
