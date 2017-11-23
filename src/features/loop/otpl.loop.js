@@ -14,7 +14,7 @@ OTplUtils.expose.looper = function ( data ) {
 		};
 
 	if ( !arr && !isPlainObject( data ) ) {
-		throw "OTPL : looper can't loop on data";
+		throw new TypeError("OTPL : looper can't loop on data");
 	}
 
 	if ( arr ) {
