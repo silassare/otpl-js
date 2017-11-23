@@ -230,7 +230,7 @@
 	var OTpl = function () {
 		var scope                = this,
 			OTPL_TAG_REG         = /<%(.+?)?%>/g,
-			OTPL_SCRIPT_REG      = /^(\s*)?(if|else|for|while|break|continue|switch|case|default|})/,
+			OTPL_SCRIPT_REG      = /^(\s*)?(if|else|for|while|break|continue|switch|case|default|var\s+\$|})/,
 			OTPL_CLEAN_REG       = /(\r\n?|\n)[\t ]*(<%.*?[}{]\s*%>)/g,//uneccessary new line space and tab,
 			OTPL_TYPE_EXPRESSION = 0,
 			OTPL_TYPE_SCRIPT     = 1;
