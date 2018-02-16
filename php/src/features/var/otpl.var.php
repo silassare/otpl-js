@@ -48,7 +48,7 @@
 
 		public static function var_replace($in, OTpl $context)
 		{
-			return $in[1];
+			return "if(1){}\n " . $in[1];
 		}
 
 		public static function plugin_replace($in, OTpl $context)
