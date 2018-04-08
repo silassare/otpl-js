@@ -13,7 +13,7 @@
 		const REG_JS_CHAIN_B = "#([$])\[(.+?)\]#";
 		const REG_AT_VAR     = "#(?!\w)@var(\s+[$][a-zA-Z_])#";
 		// shouldn't match @import(
-		const REG_AT_PLUGIN = "#(?!\w)@((?!import\()[a-zA-Z_][a-zA-Z0-9_]+)\(#";
+		const REG_AT_PLUGIN = "#(?!\w)@((?!import\()[a-zA-Z_][a-zA-Z0-9_]+)\((.)#";
 
 		public static function root_key($in, OTpl $context)
 		{
@@ -48,14 +48,19 @@
 
 		public static function var_replace($in, OTpl $context)
 		{
-			return "if(1){}\n " . $in[1];
+			return "if(0){ return; }\n " . $in[1];
 		}
 
 		public static function plugin_replace($in, OTpl $context)
 		{
 			$pl_name = $in[1];
+			$next    = $in[2];
 
-			return "OTplUtils::runPlugin('$pl_name',";
+			if ($next === ")") {
+				return "OTplUtils::runPlugin('$pl_name')";
+			}
+
+			return "OTplUtils::runPlugin('$pl_name'," . $next;
 		}
 	}
 
