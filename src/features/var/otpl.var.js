@@ -21,6 +21,13 @@ OTplUtils.addCleaner( {
 	val : "__otpl_root.data$1"
 } );
 
+// @fn() --> OTplUtils.runPlugin('fn')
+// to prevent old browser bug when there is no arg
+OTplUtils.addCleaner({
+	reg: /@([a-zA-Z_][a-zA-Z0-9_]+)\(\s*\)/g,
+	val: "OTplUtils.runPlugin('$1')"
+});
+
 // @fn(...) --> OTplUtils.runPlugin('fn',...)
 //shouldn't match @import(
 OTplUtils.addCleaner( {

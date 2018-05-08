@@ -1,3 +1,7 @@
+### v1.1.5 (2018-05-08)
+
+	- some bug that leads to synthax error fixed
+
 ### v1.1.4 (2017-02-28)
 
 	- new test output (cool) 

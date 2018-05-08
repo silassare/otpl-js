@@ -5,7 +5,7 @@
  */
 
 /**
- *  OTpl js-1.1.4
+ *  OTpl js-1.1.5
  *	Emile Silas Sare (emile.silas@gmail.com)
  */
 
@@ -430,6 +430,13 @@
 			val : "__otpl_root.data$1"
 		} );
 
+		// @fn() --> OTplUtils.runPlugin('fn')
+		// to prevent old browser bug when there is no arg
+		OTplUtils.addCleaner({
+			reg: /@([a-zA-Z_][a-zA-Z0-9_]+)\(\s*\)/g,
+			val: "OTplUtils.runPlugin('$1')"
+		});
+
 		// @fn(...) --> OTplUtils.runPlugin('fn',...)
 		//shouldn't match @import(
 		OTplUtils.addCleaner( {
@@ -788,8 +795,8 @@
 		}
 	};
 
-	OTpl.OTPL_VERSION      = "js-1.1.4";
-	OTpl.OTPL_VERSION_NAME = "OTpl js-1.1.4";
+	OTpl.OTPL_VERSION      = "js-1.1.5";
+	OTpl.OTPL_VERSION_NAME = "OTpl js-1.1.5";
 
 	OTpl.register = OTplUtils.register;
 	OTpl.addPlugin = OTplUtils.addPlugin;
