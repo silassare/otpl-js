@@ -5,7 +5,7 @@
  */
 
 /**
- *  OTpl js-1.1.4
+ *  OTpl js-1.1.5
  *	Emile Silas Sare (emile.silas@gmail.com)
  */
 
@@ -403,8 +403,8 @@
 		}
 	};
 
-	OTpl.OTPL_VERSION      = "js-1.1.4";
-	OTpl.OTPL_VERSION_NAME = "OTpl js-1.1.4";
+	OTpl.OTPL_VERSION      = "js-1.1.5";
+	OTpl.OTPL_VERSION_NAME = "OTpl js-1.1.5";
 
 	OTpl.register = OTplUtils.register;
 	OTpl.addPlugin = OTplUtils.addPlugin;

@@ -1,6 +1,6 @@
 {
 	"name": "otpl-js",
-	"version": "1.1.4",
+	"version": "1.1.5",
 	"description": "A simple template system write once run everywhere!",
 	"main": "index.js",
 	"scripts": {

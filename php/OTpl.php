@@ -12,8 +12,8 @@
 
 	final class OTpl
 	{
-		const OTPL_VERSION          = "php-1.1.4";
-		const OTPL_VERSION_NAME     = "OTpl php-1.1.4";
+		const OTPL_VERSION          = "php-1.1.5";
+		const OTPL_VERSION_NAME     = "OTpl php-1.1.5";
 		const OTPL_COMPILE_DIR_NAME = "otpl_done";
 
 		const OTPL_TAG_REG              = "#<%(.+?)?%>#";
@@ -26,7 +26,7 @@
 		private $output       = null;
 		private $is_url       = false;
 		private $src_path     = "";
-		private $dest_path    = "";
+		private $dst_path     = "";
 		private $func_name    = null;
 		private $compile_time = 0;
 
@@ -42,14 +42,14 @@
 				unlink($dest);
 			}
 
-			copy($this->dest_path, $dest);
+			copy($this->dst_path, $dest);
 
 			return $this;
 		}
 
 		private function save()
 		{
-			$path = $this->dest_path;
+			$path = $this->dst_path;
 
 			$code = OTplUtils::loadFile(OTPL_SRC_DIR . "output.php.sample");
 
@@ -99,25 +99,25 @@
 				$this->input    = OTplUtils::loadFile($tpl);
 				$this->src_path = $tpl;
 
-				$pinfos   = pathinfo($tpl);
-				$dest_dir = $pinfos['dirname'];
+				$path_info = pathinfo($tpl);
+				$dst_dir   = $path_info['dirname'];
 
-				// change only if file content change or file path change
-				$out_file_name = $pinfos['filename'] . '_' . md5($tpl . md5_file($tpl));
+				// change only if file content change or file path change or otpl version change
+				$out_file_name = $path_info['filename'] . '_' . md5($tpl . md5_file($tpl) . OTpl::OTPL_VERSION);
 			} else {
 				$this->input = $tpl;
 
-				$dest_dir  = OTPL_ROOT_DIR;
+				$dst_dir       = OTPL_ROOT_DIR;
 				$out_file_name = 'otpl_' . md5($tpl);
 			}
 
-			$dest_dir .= DIRECTORY_SEPARATOR . self::OTPL_COMPILE_DIR_NAME;
+			$dst_dir .= DIRECTORY_SEPARATOR . self::OTPL_COMPILE_DIR_NAME;
 
-			if (!file_exists($dest_dir)) {
-				mkdir($dest_dir, 0777);
+			if (!file_exists($dst_dir)) {
+				mkdir($dst_dir, 0777);
 			}
 
-			$this->dest_path = $dest_dir . DIRECTORY_SEPARATOR . $out_file_name . '.php';
+			$this->dst_path = $dst_dir . DIRECTORY_SEPARATOR . $out_file_name . '.php';
 
 			if (!$timed_func_name) {
 				$this->func_name = 'otpl_func_' . md5($out_file_name);
@@ -125,7 +125,7 @@
 				$this->func_name = 'otpl_func_' . md5($out_file_name . microtime());
 			}
 
-			if (!file_exists($this->dest_path) OR $force_new_compile) {
+			if (!file_exists($this->dst_path) OR $force_new_compile) {
 				$this->output = $this->Engine();
 				$this->save();
 			}
@@ -147,7 +147,7 @@
 
 		public function getOutputUrl()
 		{
-			return $this->dest_path;
+			return $this->dst_path;
 		}
 
 		public function getFuncName()
@@ -188,14 +188,14 @@
 
 		public function runWith($data)
 		{
-			if (file_exists($this->dest_path)) {
-				require $this->dest_path;
+			if (file_exists($this->dst_path)) {
+				require $this->dst_path;
 			}
 
 			if ($this->checkPassed() AND is_callable($this->func_name)) {
 				call_user_func($this->func_name, new OTplData($data, $this));
 			} else {
-				@unlink($this->dest_path);
+				@unlink($this->dst_path);
 
 				$tpl = $this->is_url ? $this->src_path : $this->input;
 				$o   = new OTpl();
@@ -204,7 +204,7 @@
 				$o->parse($tpl, true, true)
 				  ->runWith($data);
 
-				@unlink($this->dest_path);
+				@unlink($this->dst_path);
 			}
 		}
 
