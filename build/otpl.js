@@ -699,6 +699,10 @@
 		};
 
 		this.parse = function ( tpl ) {
+			if ( typeof tpl !== 'string' ){
+				tpl = String(tpl);
+			}
+
 			var isUrl = _endsWith( tpl , '.otpl' );//SILO::TODO are you sure?
 
 			if ( isUrl ) {
