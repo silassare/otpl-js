@@ -53,7 +53,7 @@ var OTplResolver = {
 				out.pop();
 			} else {
 				// now here we don't like
-				throw new Error( "climbing above root is dangerouse: " + path );
+				throw new Error( "climbing above root is dangerous: " + path );
 			}
 		}
 
