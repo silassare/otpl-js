@@ -1,1 +1,0 @@
-<span>My name is <%$[0]%> and i'm <% $[1] %></span>
