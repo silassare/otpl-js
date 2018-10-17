@@ -1,1 +1,3 @@
-## Feel free to contribute : [otpl](https://github.com/silassare/otpl/)
+## Feel free to contribute : 
+ - [JS Project](https://github.com/silassare/otpl-js/)
+ - [PHP Project](https://github.com/silassare/otpl-php/)

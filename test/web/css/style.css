@@ -1,0 +1,19 @@
+a {
+	text-decoration: none;
+}
+
+table{
+	width: 100%;
+    border: 1px solid #cacaca;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    background: white;
+}
+
+tr:nth-child(odd) {
+    background: whitesmoke;
+}
+
+td{
+	padding: 5px;
+}

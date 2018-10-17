@@ -2,7 +2,10 @@
 
 A simple template system, write once run everywhere with JavaScript (nodejs or in browser ), PHP ...
 
-## Your [contributions](https://github.com/silassare/otpl/) are welcomed
+## Your contributions are welcomed 
+
+ - [JS Project](https://github.com/silassare/otpl-js/)
+ - [PHP Project](https://github.com/silassare/otpl-php/)
 
 [![NPM](https://nodei.co/npm/otpl-js.png?downloads=true)](https://www.npmjs.com/package/otpl-js)
 
@@ -15,13 +18,13 @@ $ npm install otpl-js
 ## Run Build
 
 ```sh
-$ npm run-script build
+$ npm run build
 ```
 
 ## Run Test
 
 ```sh
-$ npm run-script test
+$ npm run test:run
 ```
 
 ## Use case
@@ -87,9 +90,8 @@ var output = o.runWith(data);
 ### Usage: php
 
 ```php
-	include 'OTpl.php';
 
-	$otpl = new OTpl();
+	$otpl = new \OTpl\OTpl();
 	$otpl->parse('template.otpl');
 	$data = array(
 		'label' => array(

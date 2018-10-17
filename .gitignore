@@ -1,6 +1,5 @@
 node_modules
 /.idea
-/files/otpl_done
-output
-otpl_done
 package-lock.json
+/todo
+/output

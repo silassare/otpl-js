@@ -1,0 +1,2 @@
+<label for="<%$.input.id%>" ><%$.label%></label><%if(2){%>45    <%}%>
+<input <%@HtmlSetAttr($.input)%> />

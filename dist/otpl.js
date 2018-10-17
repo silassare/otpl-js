@@ -66,7 +66,7 @@
 		TEMP_FILE_STORE       = {},
 		OTPL_DEFAULT_SRC_PATH = 'inline.template.otpl',
 		//use only for debug
-		OTPL_SAMPLE_FILE      = {OTPL::SAMPLE_OUTPUT_FILE},
+		OTPL_SAMPLE_FILE      = "/*\r\n * OTpl {otpl_version}\r\n * Auto-generated file, please don't edit\r\n *\r\n */\r\n\r\nOTpl.register( {\r\n\t'version'      : \"{otpl_version}\",\r\n\t'version_name' : \"{otpl_version_name}\",\r\n\t'src_path'     : \"{otpl_src_path}\",\r\n\t'compile_time' : {otpl_compile_time},\r\n\t'func_name'    : \"{otpl_func_name}\"\r\n}, function ( OTplUtils, data ) {\r\n\t'use strict';\r\n\treturn (function ( __otpl_root ) {\r\n\t\t{otpl_func_body}\r\n\t})( { 'out' : [], 'data' : data } );\r\n} );\r\n",
 
 		OTpl_compiled         = {},
 		OTpl_plugins          = {},
@@ -216,15 +216,407 @@
 		};
 
 	/*START::RESOLVER*/
-	{OTPL::RESOLVER}
+	/*
+	 * Copyright (c) Emile Silas Sare <emile.silas@gmail.com>
+	 *
+	 * This file is part of Otpl.
+	 */
+
+	var OTplResolver = {
+		DS      : '/',
+
+		resolve : function ( ro_ot, path ) {
+			ro_ot = this.normalize( ro_ot );
+			path = this.normalize( path );
+
+			if ( this.isRelative( path ) ) {
+				var full_path;
+
+				if ( path[ 0 ] === '/' || /^[\w]+:/.test( path ) ) {
+					// path start form the root
+					// linux - unix	-> /
+					// windows		-> D:
+
+					full_path = path;
+				} else {
+					full_path = ro_ot + this.DS + path;
+				}
+
+				path = this.job( full_path ).replace(/^(https?):[/]([^/])/,"$1://$2");
+			}
+
+			return path;
+		},
+
+		job     : function ( path ) {
+			var _in = path.split( this.DS );
+			var out = [];
+
+			// preserve linux root first char '/' like in: /root/path/to/
+			if ( path[ 0 ] === this.DS ) {
+				out.push( '' );
+			}
+
+			for ( var i = 0 ; i < _in.length ; i++ ) {
+				var part = _in[ i ];
+				// ignore part that have no value
+				if ( !part.length || part === '.' ) continue;
+
+				if ( part !== '..' ) {
+					// cool we found a new part
+					out.push( part );
+
+				} else if ( out.length > 0 ) {
+					// going back up? sure
+					out.pop();
+				} else {
+					// now here we don't like
+					throw new Error( "climbing above root is dangerous: " + path );
+				}
+			}
+
+			if ( !out.length ) {
+				return this.DS;
+			}
+
+			if ( out.length === 1 ) {
+				out.push( null );
+			}
+
+			return out.join( this.DS );
+		},
+
+		normalize : function ( path ) {
+			return path.replace( /\\/g, '/' );
+		},
+
+		isRelative : function ( path ) {
+			return /^\.{1,2}[/\\]?/.test( path )
+				|| /[/\\]\.{1,2}[/\\]/.test( path )
+				|| /[/\\]\.{1,2}$/.test( path )
+				|| /^[a-zA-Z0-9_.][^:]*$/.test( path );
+		}
+	};
 	/*END::RESOLVER*/
 
 	/*START::FEATURES*/
-	{OTPL::FEATURES}
+	//./src/features/import
+	(function(){
+		/*
+		 * Copyright (c) Emile Silas Sare <emile.silas@gmail.com>
+		 *
+		 * This file is part of Otpl.
+		 */
+
+		//Ex: @import(url,data) --> OTplUtils.importExec(url,data)
+		OTplUtils.addReplacer({
+			reg: /@import\([\s]*?(['"]?(.*?)['"]?)(?:[\s]*,[\s]*(.+?)[\s]*)?[\s]*\)/g,
+			val: function () {
+				var scope        = this,
+					_root        = scope.getSrcDir() || scope.getRootDir(),
+					url          = arguments[2],
+					data         = arguments[3],
+					match        = arguments[0],
+					isExpression = !(/^@import\([\s]*?['"]/.test(match));
+
+				if (isExpression) {
+					return "OTplUtils.importCustom( '" + escape(_root) + "'," + match.replace(/^@import\([\s]*/, "");
+				}
+
+				url = OTplResolver.resolve(_root, url);
+
+				if (_endsWith(url, ".otpl")) {
+					var child = (new OTpl()).parse(url);
+
+					scope.addDependencies(child.getDependencies());
+					scope.addDependencies([url]);
+
+					return "OTplUtils.importExec('" + url + "'," + data + ")";
+				} else {
+					return "OTplUtils.loadFile('" + url + "')";
+				}
+			}
+		});
+	})();
+
+	//./src/features/loop
+	(function(){
+		/*
+		 * Copyright (c) Emile Silas Sare <emile.silas@gmail.com>
+		 *
+		 * This file is part of Otpl.
+		 */
+
+		OTplUtils.expose.looper = function ( data ) {
+			var i             = 0,
+				len           = 0,
+				keys          = [],
+				arr           = Array.isArray( data ),
+				isPlainObject = function ( a ) {
+					return Object.prototype.toString.call( a ) === "[object Object]";
+				};
+
+			if ( !arr && !isPlainObject( data ) ) {
+				throw new TypeError("OTPL : looper can't loop on data");
+			}
+
+			if ( arr ) {
+				len = data.length;
+			} else {
+				keys = Object.keys( data );
+				len  = keys.length;
+			}
+
+			return {
+				key   : null,
+				value : null,
+				next  : function () {
+					var ok = (i < len) ? 1 : 0;
+					if ( ok ) {
+						this.key   = (arr) ? i : keys[ i ];
+						this.value = data[ this.key ];
+						i++;
+					}
+
+					return ok;
+				}
+			};
+		};
+
+		var looper_id = 0;
+
+		OTplUtils.addReplacer( {
+			reg : /loop[\s]*\([\s]*(.+?)[\s]*:[\s]*([$][a-zA-Z0-9_]+)[\s]*(?::[\s]*([$][a-zA-Z0-9_]+)[\s]*)?\)[\s]*{/g,
+			val : function () {
+				var data             = arguments[ 1 ],
+					key_name         = arguments[ 2 ],
+					value_name       = arguments[ 3 ],
+					__otpl_looper_n_ = "__otpl_looper_" + (++looper_id) + "_";
+
+				if ( !(value_name === undefined) ) {
+					return "for(var " + __otpl_looper_n_ + " = OTplUtils.expose.looper(" + data + "); " + __otpl_looper_n_ + ".next();){" +
+						"\nvar " + key_name + " = " + __otpl_looper_n_ + ".key, " + value_name + " = " + __otpl_looper_n_ + ".value;";
+				} else {
+					value_name = key_name;
+					return "for(var " + __otpl_looper_n_ + " = OTplUtils.expose.looper(" + data + "); " + __otpl_looper_n_ + ".next();){" +
+						"\nvar " + value_name + " = " + __otpl_looper_n_ + ".value;";
+				}
+			}
+		} );
+	})();
+
+	//./src/features/var
+	(function(){
+		/*
+		 * Copyright (c) Emile Silas Sare <emile.silas@gmail.com>
+		 *
+		 * This file is part of Otpl.
+		 */
+
+		// @var --> var
+		OTplUtils.addCleaner( {
+			reg : /(?!\w)@var(\s+[$][a-zA-Z_])/g,
+			val : "var$1"
+		} );
+
+		// $ 	--> __otpl_root.data
+		OTplUtils.addCleaner( {
+			reg : /(\W)\$(\W)/g,
+			val : "$1__otpl_root.data$2"
+		} );
+
+		OTplUtils.addCleaner( {
+			reg : /^\$(\W)/g,
+			val : "__otpl_root.data$1"
+		} );
+
+		// @fn() --> OTplUtils.runPlugin('fn')
+		// to prevent old browser bug when there is no arg
+		OTplUtils.addCleaner({
+			reg: /@([a-zA-Z_][a-zA-Z0-9_]+)\(\s*\)/g,
+			val: "OTplUtils.runPlugin('$1')"
+		});
+
+		// @fn(...) --> OTplUtils.runPlugin('fn',...)
+		//shouldn't match @import(
+		OTplUtils.addCleaner( {
+			reg : /(?!\w)@((?!import\()[a-zA-Z_][a-zA-Z0-9_]+)\(/g,
+			val : "OTplUtils.runPlugin('$1',"
+		} );
+	})();
+
+
 	/*END::FEATURES*/
 
 	/*START::PLUGINS*/
-	{OTPL::PLUGINS}
+	//./src/plugins/assert
+	(function(){
+		/*
+		 * Copyright (c) Emile Silas Sare <emile.silas@gmail.com>
+		 *
+		 * This file is part of Otpl.
+		 */
+
+		var utils = {};
+
+		utils.has = function ( data, key, type ) {
+
+			if ( !data ) return false;
+
+			return ( !type && data[ key ] !== undefined )
+			|| ( data[ key ] !== undefined && utils.type( data[ key ], type ) );
+		};
+
+		utils.type = function ( value, type ) {
+			var ans = false;
+
+			switch ( type ) {
+				case 'string':
+					ans = ( typeof value === 'string');
+					break;
+				case 'map':
+					var str = Object.prototype.toString.call( value );
+					ans     = ( str === '[object Array]' || str === '[object Object]' );
+					break;
+				case 'numeric':
+					ans = !isNaN( value );
+					break;
+			}
+
+			return ans;
+		};
+
+		OTplUtils.addPlugin( 'has', utils.has );
+		OTplUtils.addPlugin( 'type', utils.type );
+	})();
+
+	//./src/plugins/html
+	(function(){
+		/*
+		 * Copyright (c) Emile Silas Sare <emile.silas@gmail.com>
+		 *
+		 * This file is part of Otpl.
+		 */
+
+		OTplUtils.addPlugin( 'HtmlSetAttr', function ( key, val ) {
+			var data = {},
+				arr  = [];
+
+			if ( typeof key === 'string' ) {
+				data[ key ] = val;
+			} else {
+				data = arguments[ 0 ];
+			}
+
+			Object.keys(data).forEach(function(attr){
+				var value = OTplUtils.runPlugin( 'HtmlEscape', data[ attr ] ),
+					_     = attr;
+
+				if ( value.length ) {
+					_ += '="' + value + '"';
+				}
+
+				arr.push( _ );
+			});
+
+			return arr.join( ' ' );
+		} );
+
+		var escapeChars = {
+				'¢'  : 'cent',
+				'£'  : 'pound',
+				'¥'  : 'yen',
+				'€'  : 'euro',
+				'©'  : 'copy',
+				'®'  : 'reg',
+				'<'  : 'lt',
+				'>'  : 'gt',
+				'"'  : 'quot',
+				'&'  : 'amp',
+				'\'' : '#39'
+			},
+			escapeReg   = new RegExp( '[' + Object.keys( escapeChars ).join( '' ) + ']', 'g' ),
+			ampReg      = new RegExp( '&amp;', 'g' );
+
+		OTplUtils.addPlugin( 'HtmlEscape', function ( str ) {
+			str = (''+str).replace( escapeReg, function ( m ) {
+				return '&' + escapeChars[ m ] + ';';
+			} );
+
+			return str.replace( ampReg, '&' );
+		} );
+	})();
+
+	//./src/plugins/utils
+	(function(){
+		/*
+		 * Copyright (c) Emile Silas Sare <emile.silas@gmail.com>
+		 *
+		 * This file is part of Otpl.
+		 */
+
+		var isArray       = function ( a ) {
+			return a && Object.prototype.toString.call( a ) === '[object Array]';
+		};
+		var isPlainObject = function ( a ) {
+			return a && Object.prototype.toString.call( a ) === '[object Object]';
+		};
+
+		OTplUtils.addPlugin( 'join', function ( items, sep ) {
+			var s = sep || '';
+
+			if ( isArray( items ) ) {
+				return items.join( s );
+			}
+
+			if ( isPlainObject( items ) ) {
+				return Object.values( items ).join( s );
+			}
+
+			return "";
+		} );
+
+		OTplUtils.addPlugin( 'concat', function ( a, b ) {
+			return [].slice.call( arguments, 0, arguments.length ).join( '' );
+		} );
+
+		OTplUtils.addPlugin( 'length', function ( a ) {
+			if ( isPlainObject( a ) ) return Object.keys(a).length;
+			if ( a && Object.hasOwnProperty.call( a, 'length' ) ) return a.length;
+			if ( typeof a === 'number' ) return parseInt(a);
+
+			return a ? 1:0;
+		} );
+
+		OTplUtils.addPlugin( 'keys', function ( a ) {
+
+			if ( isArray( a ) || isPlainObject( a ) ) {
+				return Object.keys( a );
+			}
+
+			return [];
+		} );
+
+		OTplUtils.addPlugin( 'values', function ( a ) {
+
+			if ( isArray( a ) || isPlainObject( a ) ) {
+				return Object.values( a );
+			}
+
+			return [];
+		} );
+
+		// es6: fn = (exp, a = '', b = '') => ( exp? a : b );
+
+		OTplUtils.addPlugin( 'if', function ( exp, a, b ) {
+			a = ( a === undefined )? '' : a;
+			b = ( b === undefined )? '' : b;
+
+			return ( exp )? a : b;
+		} );
+	})();
+
+
 	/*END::PLUGINS*/
 
 	var OTpl = function () {

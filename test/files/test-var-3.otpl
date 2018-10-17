@@ -1,0 +1,7 @@
+<%for(@var $i = 0; $i < @length($); $i++){%>
+	<%if( @has($[$i],'age','numeric') ){%>
+	<span><% $i+1 %> : my name is <% $[$i].name %> and i'm <%$[$i].age%>.</span><br/>
+	<%} else {%>
+	<span><% $i+1 %> : my name is <% $[$i].name %>.</span><br/>
+	<%}%>
+<%}%>

@@ -1,0 +1,8 @@
+
+I’m a full stack developer. I spend my whole day, practically every day, experimenting with:
+- JavaScript,
+- Java,
+- PHP,
+- HTML,
+- CSS,
+and much more.

@@ -13,6 +13,6 @@ OTpl.register( {
 }, function ( OTplUtils, data ) {
 	'use strict';
 	return (function ( __otpl_root ) {
-		{otpl_file_content}
+		{otpl_func_body}
 	})( { 'out' : [], 'data' : data } );
 } );
