@@ -1,7 +1,7 @@
 {
 	"name": "otpl-js",
-	"version": "1.1.6",
-	"description": "A simple template system write once run everywhere!",
+	"version": "1.1.7",
+	"description": "A simple template system, write once run everywhere!",
 	"main": "dist/otpl.js",
 	"scripts": {
 		"build": "node build/index.js",
@@ -18,7 +18,7 @@
 		"url": "git+ssh://git@github.com/silassare/otpl-js.git"
 	},
 	"author": "Emile Silas Sare (emile.silas@gmail.com)",
-	"license": "ISC",
+	"license": "MIT",
 	"bugs": {
 		"url": "https://github.com/silassare/otpl-js/issues"
 	},

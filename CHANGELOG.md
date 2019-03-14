@@ -1,3 +1,7 @@
+### v1.1.7 (2019-13-02)
+ - some bug fix and code optimization
+ - license updated to MIT
+
 ### v1.1.6 (2018-17-10)
 
  - php source moved to a new project repo
