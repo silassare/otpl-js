@@ -3,7 +3,7 @@
  * Auto-generated file, please don't edit
  *
  *  - otpl-bundler 1.0.1
- *  - OTpl js-1.1.6
+ *  - OTpl js-1.1.7
  *
  * Wed, 17 Oct 2018 14:08:09 GMT
  */

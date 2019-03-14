@@ -5,7 +5,7 @@
  */
 
 /**
- *  OTpl js-1.1.6
+ *  OTpl js-1.1.7
  *	Emile Silas Sare (emile.silas@gmail.com)
  */
 
@@ -64,7 +64,7 @@
 			return './';
 		},
 		TEMP_FILE_STORE       = {},
-		OTPL_DEFAULT_SRC_PATH = 'inline.template.otpl',
+		OTPL_DEFAULT_SRC_PATH = 'inline.template_'+Math.random()+'.otpl',
 		//use only for debug
 		OTPL_SAMPLE_FILE      = "/*\r\n * OTpl {otpl_version}\r\n * Auto-generated file, please don't edit\r\n *\r\n */\r\n\r\nOTpl.register( {\r\n\t'version'      : \"{otpl_version}\",\r\n\t'version_name' : \"{otpl_version_name}\",\r\n\t'src_path'     : \"{otpl_src_path}\",\r\n\t'compile_time' : {otpl_compile_time},\r\n\t'func_name'    : \"{otpl_func_name}\"\r\n}, function ( OTplUtils, data ) {\r\n\t'use strict';\r\n\treturn (function ( __otpl_root ) {\r\n\t\t{otpl_func_body}\r\n\t})( { 'out' : [], 'data' : data } );\r\n} );\r\n",
 
@@ -799,8 +799,8 @@
 		}
 	};
 
-	OTpl.OTPL_VERSION      = "js-1.1.6";
-	OTpl.OTPL_VERSION_NAME = "OTpl js-1.1.6";
+	OTpl.OTPL_VERSION      = "js-1.1.7";
+	OTpl.OTPL_VERSION_NAME = "OTpl js-1.1.7";
 
 	OTpl.register = OTplUtils.register;
 	OTpl.addPlugin = OTplUtils.addPlugin;

@@ -5,7 +5,7 @@
  */
 
 /**
- *  OTpl js-1.1.6
+ *  OTpl js-1.1.7
  *	Emile Silas Sare (emile.silas@gmail.com)
  */
 
@@ -64,7 +64,7 @@
 			return './';
 		},
 		TEMP_FILE_STORE       = {},
-		OTPL_DEFAULT_SRC_PATH = 'inline.template.otpl',
+		OTPL_DEFAULT_SRC_PATH = 'inline.template_'+Math.random()+'.otpl',
 		//use only for debug
 		OTPL_SAMPLE_FILE      = {OTPL::SAMPLE_OUTPUT_FILE},
 
@@ -407,8 +407,8 @@
 		}
 	};
 
-	OTpl.OTPL_VERSION      = "js-1.1.6";
-	OTpl.OTPL_VERSION_NAME = "OTpl js-1.1.6";
+	OTpl.OTPL_VERSION      = "js-1.1.7";
+	OTpl.OTPL_VERSION_NAME = "OTpl js-1.1.7";
 
 	OTpl.register = OTplUtils.register;
 	OTpl.addPlugin = OTplUtils.addPlugin;
